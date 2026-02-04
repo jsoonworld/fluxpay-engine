@@ -33,7 +33,7 @@ Use `gh api` to get all review comments:
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate
 ```
 
-Filter for CodeRabbit comments (author: `coderabbitai[bot]}` or contains CodeRabbit signature).
+Filter for CodeRabbit comments (author: `coderabbitai[bot]` or contains CodeRabbit signature).
 
 ### Step 3: For Each Comment, Execute This Process
 
