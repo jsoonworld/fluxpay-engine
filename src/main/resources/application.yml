@@ -29,10 +29,33 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "*"
+        spring.json.trusted.packages: com.fluxpay.engine
+
+  # Jackson
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
 
 server:
   port: 8080
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    r2dbc:
+      enabled: true
+    redis:
+      enabled: true
 
 # Logging
 logging:
@@ -51,10 +74,12 @@ springdoc:
 
 # FluxPay Custom Config
 fluxpay:
-  payment:
+  pg:
     toss:
-      api-url: https://api.tosspayments.com
-      secret-key: ${TOSS_SECRET_KEY:test_sk_}
+      api-url: https://api.tosspayments.com/v1
+      secret-key: ${TOSS_SECRET_KEY:test_sk_XXXXXXXXXXXXXXX}
+      connect-timeout: 3s
+      read-timeout: 10s
 
   credit:
     default-currency: KRW
