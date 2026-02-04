@@ -47,6 +47,9 @@ out/
 ### Claude Code ###
 .claude/settings.local.json
 
+### Implementation Plans (local planning docs) ###
+docs/implementation-plan/
+
 ### Logs ###
 *.log
 logs/

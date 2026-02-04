@@ -656,7 +656,8 @@ src/main/java/com/fluxpay/engine/
 │   ├── model/                 # Domain entities and value objects
 │   ├── service/               # Domain services
 │   ├── port/                  # Ports (interfaces for adapters)
-│   └── event/                 # Domain events
+│   ├── event/                 # Domain events
+│   └── saga/                  # Saga orchestration
 ├── infrastructure/            # External concerns
 │   ├── persistence/           # R2DBC repositories, entities
 │   ├── messaging/             # Kafka producers/consumers
@@ -664,7 +665,8 @@ src/main/java/com/fluxpay/engine/
 │   └── external/              # External service clients
 └── presentation/              # API layer
     ├── api/                   # REST controllers
-    └── dto/                   # Request/Response DTOs
+    ├── dto/                   # Request/Response DTOs
+    └── exception/             # Exception handlers
 ```
 
 ### Naming Conventions
@@ -856,14 +858,59 @@ docker-compose logs -f
 
 #### 1. Order Domain
 - Represents purchase intent and order lifecycle
-- States: CREATED → PENDING → CONFIRMED → COMPLETED / CANCELLED
 - Aggregates line items, pricing, and customer information
+- States: PENDING → PAID → COMPLETED / CANCELLED / FAILED
+
+```
+              ┌─────────┐
+              │ PENDING │
+              └────┬────┘
+                   │ payment approved
+                   ▼
+              ┌─────────┐
+    ┌─────────│  PAID   │─────────┐
+    │         └────┬────┘         │
+    │ cancel       │ complete     │ fail
+    ▼              ▼              ▼
+┌───────────┐ ┌───────────┐ ┌───────────┐
+│ CANCELLED │ │ COMPLETED │ │  FAILED   │
+└───────────┘ └───────────┘ └───────────┘
+```
 
 #### 2. Payment Domain
 - Handles monetary transactions
 - Supports multiple payment methods (card, bank transfer, wallet)
 - Implements idempotency for safe retries
-- States: INITIATED → PROCESSING → COMPLETED / FAILED / REFUNDED
+- 2-Phase Commit: Approval (hold) → Confirmation (capture)
+- States: READY → PROCESSING → APPROVED → CONFIRMED / FAILED / REFUNDED
+
+```
+       ┌─────────┐
+       │  READY  │
+       └────┬────┘
+            │ request
+            ▼
+     ┌─────────────┐
+     │ PROCESSING  │
+     └──────┬──────┘
+            │
+  ┌─────────┼─────────┐
+  │ success │         │ fail
+  ▼         │         ▼
+┌────────┐  │    ┌────────┐
+│APPROVED│  │    │ FAILED │
+└───┬────┘  │    └────────┘
+    │confirm│
+    ▼       │
+┌─────────┐ │
+│CONFIRMED│ │
+└────┬────┘ │
+     │refund│
+     ▼      │
+┌─────────┐ │
+│REFUNDED │ │
+└─────────┘ │
+```
 
 #### 3. Credit Domain
 - Manages virtual currency, points, or prepaid balances
@@ -991,6 +1038,17 @@ Add idempotency check before initiating payment transaction.
 | Run | `./gradlew bootRun` |
 | Start infra | `docker-compose up -d` |
 | Coverage report | `./gradlew jacocoTestReport` |
+
+---
+
+## Related Documentation
+
+For more detailed information, refer to these companion documents:
+
+| Document | Description | Location |
+|----------|-------------|----------|
+| **1-Pager** | Executive summary, goals, use cases, and roadmap | [docs/1-pager.md](docs/1-pager.md) |
+| **Tech Spec** | Detailed technical specification including architecture, domain models, patterns, and observability | [docs/tech-spec.md](docs/tech-spec.md) |
 
 ---
 
