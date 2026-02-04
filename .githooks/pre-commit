@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo "Running tests before commit..."
+
+# Run Gradle tests
+if ! ./gradlew test --console=plain; then
+    echo ""
+    echo "Tests failed! Commit aborted."
+    echo "Please fix failing tests before committing."
+    exit 1
+fi
+
+echo "All tests passed. Proceeding with commit."
+exit 0
