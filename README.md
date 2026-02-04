@@ -1,22 +1,37 @@
 # FluxPay Engine
 
-> 도메인 독립적인 결제/과금 엔진 - 분산 환경에서 데이터 무결성을 보장하는 플러그인형 결제 플랫폼
+> A domain-agnostic payment and billing engine ensuring data integrity in distributed environments
 
 ## Overview
 
-어떤 서비스 앞에도 붙여서 결제, 과금, 트래픽 제어를 처리할 수 있는 재사용 가능한 엔진입니다.
-특정 도메인에 종속되지 않고, 설정 기반으로 다양한 비즈니스 모델(크레딧, 구독, 종량제)을 지원합니다.
+FluxPay Engine is a **pluggable payment/billing system** that can be integrated with any service to handle payments, billing, and traffic control. It supports various business models (credits, subscriptions, pay-per-use) through configuration without domain-specific dependencies.
+
+### Key Characteristics
+
+| Characteristic | Description |
+|----------------|-------------|
+| **Reactive & Non-blocking** | Built on Project Reactor for high concurrency |
+| **Domain-agnostic** | Not tied to any specific business domain |
+| **Distributed Transaction** | Saga pattern for cross-service consistency |
+| **Event-driven** | Kafka-based event streaming |
+
+### Problems We Solve
+
+1. **Repetitive payment system development** - PG integration, idempotency, refund logic from scratch every time
+2. **Data consistency in distributed environments** - Manual reconciliation when payment succeeds but service fails
+3. **Traffic surge protection** - System crashes during flash sales or large promotions
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Spring Boot 3 + WebFlux |
 | Language | Java 21 |
-| Database | PostgreSQL (R2DBC) |
-| Message Queue | Kafka |
-| Cache | Redis |
-| PG | 토스페이먼츠 |
+| Framework | Spring Boot 3 + WebFlux |
+| Build | Gradle (Groovy DSL) |
+| Database | PostgreSQL 16+ (R2DBC) |
+| Cache | Redis 7.x |
+| Messaging | Apache Kafka 3.x |
+| PG | TossPayments |
 
 ## Quick Start
 
@@ -26,65 +41,125 @@
 - Docker & Docker Compose
 - Gradle 8.x
 
-### Run Infrastructure
+### Setup
 
 ```bash
+# Start infrastructure (PostgreSQL, Redis, Kafka)
 docker-compose up -d
-```
 
-### Run Application
+# Setup Git hooks
+./.githooks/setup.sh
 
-```bash
+# Run application
 ./gradlew bootRun
 ```
 
 ### API Documentation
 
-서버 실행 후: http://localhost:8080/swagger-ui.html
+After starting the server: http://localhost:8080/swagger-ui.html
 
-## Project Structure
+## Core Domains
 
+| Domain | Description | Key Capabilities |
+|--------|-------------|------------------|
+| **Order** | Purchase intent and lifecycle | Create, confirm, cancel |
+| **Payment** | PG-integrated payment processing | Approve, confirm, refund |
+| **Credit** | Prepaid credit system | Charge, consume, refund |
+| **Subscription** | Recurring billing management | Subscribe, renew, pause, cancel |
+
+## Architecture
+
+FluxPay Engine follows **Hexagonal Architecture** (Ports & Adapters):
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                     Presentation Layer                       │
+│                 (Controllers, DTOs, APIs)                    │
+├─────────────────────────────────────────────────────────────┤
+│                      Domain Layer                            │
+│            (Entities, Use Cases, Domain Services)            │
+├─────────────────────────────────────────────────────────────┤
+│                   Infrastructure Layer                       │
+│         (Repositories, External Services, Adapters)          │
+└─────────────────────────────────────────────────────────────┘
 ```
-fluxpay-engine/
-├── src/main/java/com/fluxpay/engine/
-│   ├── FluxPayApplication.java
-│   ├── domain/
-│   │   ├── order/          # 주문 도메인
-│   │   ├── payment/        # 결제 도메인
-│   │   ├── credit/         # 크레딧 도메인
-│   │   └── subscription/   # 구독 도메인
-│   ├── infrastructure/
-│   │   ├── config/         # 설정
-│   │   ├── persistence/    # DB 연동
-│   │   ├── messaging/      # Kafka
-│   │   └── external/       # 외부 API (PG사)
-│   └── presentation/
-│       ├── api/            # REST API
-│       └── dto/            # 요청/응답 DTO
-├── src/main/resources/
-│   └── application.yml
-├── docs/
-│   └── 1-pager.md          # 프로젝트 문서
-└── docker-compose.yml
+
+### Project Structure
+
+```text
+src/main/java/com/fluxpay/engine/
+├── domain/                    # Core business logic
+│   ├── model/                 # Entities and value objects
+│   ├── service/               # Domain services
+│   ├── port/                  # Ports (interfaces)
+│   └── event/                 # Domain events
+├── infrastructure/            # External concerns
+│   ├── persistence/           # R2DBC repositories
+│   ├── messaging/             # Kafka producers/consumers
+│   └── external/              # PG clients
+└── presentation/              # API layer
+    ├── api/                   # REST controllers
+    └── dto/                   # Request/Response DTOs
 ```
 
-## Core Features
+## Technical Patterns
 
-- **Order**: 주문 생성 및 상태 관리
-- **Payment**: PG사 연동 결제 처리
-- **Credit**: 선불 크레딧 충전/사용
-- **Subscription**: 구독 모델 지원
+| Pattern | Purpose |
+|---------|---------|
+| **Saga Pattern** | Distributed transaction compensation |
+| **Transactional Outbox** | Reliable event publishing |
+| **Idempotency (2-Layer)** | Duplicate request prevention (Redis + PostgreSQL) |
+| **Virtual Waiting Room** | Traffic control during peak loads |
 
-## Key Technical Challenges
+## Success Criteria
 
-- **Saga Pattern**: 분산 트랜잭션 보상 처리
-- **Transactional Outbox**: 이벤트 유실 방지
-- **Idempotency**: 중복 요청 방지 (Redis Lua Script)
-- **Virtual Waiting Room**: 트래픽 제어
+| Metric | Target |
+|--------|--------|
+| Payment Success Rate | 99.9%+ |
+| Duplicate Payments | 0/month |
+| Consistency Recovery | < 30 seconds |
+| API Response (p95) | < 200ms |
+| Throughput | 1,000+ TPS |
+
+## Development
+
+### TDD is Mandatory
+
+All development follows **Red-Green-Refactor** cycle. See [CLAUDE.md](CLAUDE.md) for detailed guidelines.
+
+```bash
+# Run tests
+./gradlew test
+
+# Run with coverage
+./gradlew test jacocoTestReport
+
+# Full verification
+./gradlew check
+```
+
+### Code Coverage
+
+- Minimum: 80%
+- Domain layer: 90%+
 
 ## Documentation
 
-- [1-Pager](docs/1-pager.md) - 프로젝트 상세 문서
+| Document | Description |
+|----------|-------------|
+| [1-Pager](docs/1-pager.md) | Executive summary |
+| [Product Brief](docs/product-brief.md) | Business goals, use cases, roadmap |
+| [Tech Spec](docs/tech-spec.md) | Technical architecture and specifications |
+| [CLAUDE.md](CLAUDE.md) | Development conventions and guidelines |
+
+## Roadmap
+
+| Phase | Goal | Key Deliverables |
+|-------|------|------------------|
+| **1** | Core Payment | Order/Payment, PG integration, Basic API |
+| **2** | Reliability | Event architecture, Saga, Multi-tenancy |
+| **3** | Scalability | Traffic control, Subscription, Load testing |
+| **4** | Operations | Dashboards, Alerting, Distributed tracing |
 
 ## License
 

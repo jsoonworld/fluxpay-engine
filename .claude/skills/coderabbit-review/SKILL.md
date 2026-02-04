@@ -69,7 +69,8 @@ Make a decision with clear reasoning:
 **CRITICAL: All independent fixes MUST be executed in parallel using Task agents.**
 
 **Step 1: Analyze all ACCEPT decisions**
-```
+
+```text
 ACCEPT comments:
 - Comment #1: PaymentService.java:45 (null check)
 - Comment #3: OrderController.java:89 (validation)
@@ -81,7 +82,8 @@ ACCEPT comments:
 - Different files, no dependency? → PARALLEL
 
 **Step 3: Launch ALL parallel agents in ONE message**
-```
+
+```text
 Launch simultaneously:
 - Task Agent A: Fix PaymentService.java (Comment #1)
 - Task Agent B: Fix OrderController.java (Comment #3)
@@ -95,7 +97,8 @@ Launch simultaneously:
 - Wait for ALL agents to complete before proceeding to replies
 
 **Example: 5 ACCEPT comments on different files**
-```
+
+```text
 WRONG (Sequential - FORBIDDEN):
   Fix #1 → Wait → Fix #2 → Wait → Fix #3 → Wait → Fix #4 → Wait → Fix #5
   Total time: 5x
@@ -106,7 +109,9 @@ CORRECT (Parallel - REQUIRED):
 ```
 
 #### 3.4 Reply Phase
+
 Reply to EACH comment individually using:
+
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
   -method POST \
@@ -189,7 +194,7 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
 
 ## Example Session
 
-```
+```text
 Processing PR #42: "feat: Add payment validation"
 
 Found 5 CodeRabbit comments:

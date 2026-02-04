@@ -28,6 +28,7 @@ PR 리뷰 코멘트를 처리합니다. 리뷰어가 누구든 (사람, CodeRabb
 ## Workflow
 
 ### Step 1: Fetch PR Information
+
 ```bash
 PR_NUMBER=$ARGUMENTS
 if [ -z "$PR_NUMBER" ]; then
@@ -36,6 +37,7 @@ fi
 ```
 
 ### Step 2: Fetch All Review Comments
+
 ```bash
 # 모든 리뷰 코멘트 가져오기
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate
@@ -80,7 +82,7 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate
 2. 파일별 그룹화 (같은 파일 → 순차, 다른 파일 → 병렬)
 3. 하나의 메시지에서 모든 병렬 에이전트 실행
 
-```
+```text
 예시: 4개 파일 수정 필요
 
 실행 방식:
@@ -92,7 +94,9 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate
 ```
 
 #### 3.4 Reply Phase
+
 각 코멘트에 개별 답변:
+
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
   -method POST \
@@ -208,7 +212,7 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
 
 ## Example Session
 
-```
+```text
 Processing PR #42: "feat: Add payment validation"
 
 Found 5 review comments:
