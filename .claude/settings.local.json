@@ -1,17 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./gradlew test*)",
-      "Bash(./gradlew build*)",
-      "Bash(./gradlew clean*)",
-      "Bash(./gradlew bootRun*)",
-      "Bash(docker-compose*)",
+      "Bash(./gradlew *)",
+      "Bash(docker-compose *)",
+      "Bash(docker *)",
       "Bash(git *)",
+      "Bash(gh *)",
       "Bash(chmod *)",
-      "Bash(./.githooks/setup.sh *)",
-      "Bash(gh pr *)",
-      "Bash(gh api *)"
+      "Bash(mkdir *)",
+      "Bash(rm *)",
+      "Bash(mv *)",
+      "Bash(cp *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(tree *)",
+      "Bash(curl *)",
+      "Bash(java *)",
+      "Bash(javac *)"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": false
 }
