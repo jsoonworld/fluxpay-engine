@@ -3,7 +3,7 @@
 echo "Running tests before commit..."
 
 # Run Gradle tests
-if ! ./gradlew test --quiet; then
+if ! ./gradlew test --console=plain; then
     echo ""
     echo "Tests failed! Commit aborted."
     echo "Please fix failing tests before committing."
