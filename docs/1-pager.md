@@ -40,7 +40,7 @@
 | 레이어 | 기술 | 선택 이유 |
 |--------|------|----------|
 | Framework | Spring Boot 3 + WebFlux | 비동기/논블로킹, 생태계 |
-| Language | Kotlin + Coroutines | 간결한 비동기 코드 |
+| Language | Java 21 + Reactor | 안정성, 광범위한 생태계 |
 | Database | PostgreSQL | 트랜잭션 안정성 |
 | Message Queue | Kafka | 이벤트 소싱, 내구성 |
 | Cache | Redis | Lua Script 기반 원자적 연산 |
@@ -200,7 +200,7 @@
 
 ### Phase 1: Core Payment
 
-- [x] 프로젝트 셋업 (Spring Boot 3, Kotlin, WebFlux)
+- [x] 프로젝트 셋업 (Spring Boot 3, Java, WebFlux)
 - [ ] 주문/결제 도메인 구현
 - [ ] 토스페이먼츠 연동
 - [ ] 기본 크레딧 시스템
@@ -246,6 +246,6 @@
 
 ## 기술 키워드
 
-`Spring WebFlux` `Kotlin Coroutines` `Kafka` `Redis Lua Script`
+`Spring WebFlux` `Project Reactor` `Kafka` `Redis Lua Script`
 `Saga Pattern` `Transactional Outbox` `Idempotent API`
 `Virtual Waiting Room` `Rate Limiting` `Event Sourcing`

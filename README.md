@@ -12,7 +12,7 @@
 | Layer | Technology |
 |-------|------------|
 | Framework | Spring Boot 3 + WebFlux |
-| Language | Kotlin + Coroutines |
+| Language | Java 21 |
 | Database | PostgreSQL (R2DBC) |
 | Message Queue | Kafka |
 | Cache | Redis |
@@ -46,8 +46,8 @@ docker-compose up -d
 
 ```
 fluxpay-engine/
-├── src/main/kotlin/com/fluxpay/engine/
-│   ├── FluxPayApplication.kt
+├── src/main/java/com/fluxpay/engine/
+│   ├── FluxPayApplication.java
 │   ├── domain/
 │   │   ├── order/          # 주문 도메인
 │   │   ├── payment/        # 결제 도메인
