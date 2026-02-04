@@ -37,7 +37,7 @@ gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/comments --paginate
 
 **독립적 수정은 반드시 병렬 실행:**
 
-```
+```text
 4개 파일 수정 필요:
 
 WRONG (순차):

@@ -454,6 +454,7 @@ Error codes follow the pattern: `{DOMAIN}_{NUMBER}`
 | `VAL` | Validation | VAL_001 - VAL_099 |
 
 #### Payment Error Codes
+
 | Code | HTTP Status | Description |
 |------|-------------|-------------|
 | PAY_001 | 404 | Payment not found |
@@ -464,6 +465,7 @@ Error codes follow the pattern: `{DOMAIN}_{NUMBER}`
 | PAY_006 | 400 | Invalid payment state transition |
 
 #### System Error Codes
+
 | Code | HTTP Status | Description |
 |------|-------------|-------------|
 | SYS_001 | 500 | Internal server error |
@@ -616,6 +618,7 @@ Key characteristics:
 ## Tech Stack & Architecture
 
 ### Core Technologies
+
 | Layer | Technology |
 |-------|------------|
 | Framework | Spring Boot 3 + WebFlux |
@@ -627,7 +630,7 @@ Key characteristics:
 
 ### Architecture Style: Hexagonal / Clean Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                     Presentation Layer                       │
 │                 (Controllers, DTOs, APIs)                    │
@@ -650,7 +653,8 @@ The architecture enforces:
 ## Code Conventions
 
 ### Package Structure
-```
+
+```text
 src/main/java/com/fluxpay/engine/
 ├── domain/                    # Core business logic
 │   ├── model/                 # Domain entities and value objects
@@ -713,6 +717,7 @@ All new features MUST follow the **Red-Green-Refactor** cycle:
 3. **REFACTOR**: Clean up the code while keeping tests green
 
 ### Test File Naming
+
 | Test Type | Naming Pattern | Location |
 |-----------|----------------|----------|
 | Unit Tests | `*Test.java` | `src/test/java/.../` |
@@ -861,7 +866,7 @@ docker-compose logs -f
 - Aggregates line items, pricing, and customer information
 - States: PENDING → PAID → COMPLETED / CANCELLED / FAILED
 
-```
+```text
               ┌─────────┐
               │ PENDING │
               └────┬────┘
@@ -884,7 +889,7 @@ docker-compose logs -f
 - 2-Phase Commit: Approval (hold) → Confirmation (capture)
 - States: READY → PROCESSING → APPROVED → CONFIRMED / FAILED / REFUNDED
 
-```
+```text
        ┌─────────┐
        │  READY  │
        └────┬────┘
@@ -926,7 +931,8 @@ docker-compose logs -f
 
 #### Saga Pattern
 Used for long-running transactions spanning multiple services:
-```
+
+```text
 Order Service → Payment Service → Inventory Service → Notification Service
      │               │                  │                    │
      └─── Compensating transactions on failure ────────────────┘
@@ -937,7 +943,8 @@ Order Service → Payment Service → Inventory Service → Notification Service
 
 #### Transactional Outbox Pattern
 Ensures reliable event publishing with database transactions:
-```
+
+```text
 1. Begin Transaction
 2. Update domain state in database
 3. Insert event into outbox table
@@ -964,7 +971,8 @@ end
 ```
 
 Every payment request must include an idempotency key in the header:
-```
+
+```text
 X-Idempotency-Key: <uuid>
 ```
 
@@ -973,7 +981,8 @@ X-Idempotency-Key: <uuid>
 ## Git Workflow
 
 ### Branch Strategy
-```
+
+```text
 main (production)
   └── develop (integration)
         ├── feature/payment-refund
@@ -987,7 +996,8 @@ main (production)
 - Hotfixes: `hotfix/<description>` (e.g., `hotfix/security-patch`)
 
 ### Commit Message Format
-```
+
+```text
 <type>: <subject>
 
 [optional body]
@@ -1004,7 +1014,8 @@ main (production)
 - `chore`: Build, CI, or tooling changes
 
 **Examples**:
-```
+
+```text
 feat: Add payment refund endpoint
 
 - Implement partial and full refund support
@@ -1014,7 +1025,7 @@ feat: Add payment refund endpoint
 Closes #123
 ```
 
-```
+```text
 fix: Prevent duplicate payment processing
 
 Add idempotency check before initiating payment transaction.

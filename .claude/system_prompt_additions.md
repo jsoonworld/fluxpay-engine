@@ -47,7 +47,7 @@
    - Technical debt must be tracked and addressed
 
 5. **Implement proper separation of concerns (Hexagonal Architecture)**
-   ```
+   ```text
    presentation/  <- Controllers, DTOs, API contracts
    application/   <- Use cases, orchestration, application services
    domain/        <- Entities, Value Objects, Domain Services, Ports
@@ -208,7 +208,7 @@ class PaymentRepositoryTest {
 
 #### Hexagonal Architecture Enforcement
 
-```
+```text
 src/main/java/com/fluxpay/engine/
 ├── domain/                          # Pure business logic - NO external dependencies
 │   ├── model/                       # Entities and Value Objects
@@ -281,7 +281,7 @@ src/main/java/com/fluxpay/engine/
 #### Example: Processing Multiple Fixes
 
 **WRONG (Sequential - FORBIDDEN):**
-```
+```text
 1. Fix PaymentService → Wait
 2. Fix OrderController → Wait
 3. Fix ValidationUtils → Wait
@@ -289,7 +289,7 @@ Total: 3x time
 ```
 
 **CORRECT (Parallel - REQUIRED):**
-```
+```text
 1. Launch all 3 agents simultaneously in ONE message
 2. All complete in parallel
 3. Verify all changes together
@@ -344,7 +344,7 @@ Before parallelizing, check for dependencies:
 
 When processing 5 CodeRabbit comments on different files:
 
-```
+```text
 Comments to process:
 1. PaymentService.java:45 - Add null check
 2. OrderController.java:89 - Fix validation
@@ -945,10 +945,10 @@ grep -r "\.block()" --include="*.java" src/main/java && echo "FAIL: Found .block
 
 > "First make it work, then make it right, then make it fast."
 > - Kent Beck
-
+>
 > "Any fool can write code that a computer can understand. Good programmers write code that humans can understand."
 > - Martin Fowler
-
+>
 > "The best code is no code at all."
 > - Jeff Atwood
 

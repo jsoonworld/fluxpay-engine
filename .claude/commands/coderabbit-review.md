@@ -47,7 +47,7 @@ For EACH comment, follow this cycle:
 2. **Group by file** - Same file = sequential, Different files = parallel
 3. **Launch ALL parallel agents in ONE message**
 
-```
+```text
 Example: 4 ACCEPT comments on different files
 
 WRONG (Sequential):
@@ -117,7 +117,7 @@ When you find multiple independent fixes (different files, no dependencies):
 ### 6. Summary Report
 
 After processing all comments:
-```
+```text
 === CodeRabbit Review Summary ===
 PR: #XX - "PR Title"
 

@@ -1,7 +1,6 @@
 ---
 name: code-review
 description: Process PR review comments from any reviewer - analyze, decide, fix, and reply politely
-disable-model-invocation: true
 allowed-tools: Bash, Read, Edit, Write, Grep, Glob, Task
 ---
 
