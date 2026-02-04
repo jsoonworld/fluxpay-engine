@@ -263,6 +263,111 @@ src/main/java/com/fluxpay/engine/
 
 ---
 
+## Parallel Agent Execution (MANDATORY)
+
+### Core Principle
+**ALWAYS use parallel Task agents for independent operations.** This is not optional - it's a fundamental efficiency requirement for all implementation work.
+
+### When to Use Parallel Agents
+
+#### MUST parallelize when:
+1. **Multiple file edits** - Fixing issues in different files with no dependencies
+2. **Independent test runs** - Running tests for separate modules
+3. **Code review comments** - Processing multiple review comments affecting different files
+4. **Research tasks** - Exploring multiple areas of the codebase simultaneously
+5. **Validation checks** - Running lint, tests, and coverage when possible
+6. **Feature implementation** - Breaking down into independent sub-tasks
+
+#### Example: Processing Multiple Fixes
+
+**WRONG (Sequential - FORBIDDEN):**
+```
+1. Fix PaymentService → Wait
+2. Fix OrderController → Wait
+3. Fix ValidationUtils → Wait
+Total: 3x time
+```
+
+**CORRECT (Parallel - REQUIRED):**
+```
+1. Launch all 3 agents simultaneously in ONE message
+2. All complete in parallel
+3. Verify all changes together
+Total: 1x time
+```
+
+### Implementation Pattern
+
+When you identify independent tasks, use multiple Task tool invocations in a SINGLE response:
+
+```markdown
+I'll fix all three issues in parallel:
+
+[Task 1: Fix PaymentService validation]
+[Task 2: Add logging to OrderController]
+[Task 3: Update ValidationUtils error messages]
+
+(All three Task tools called in the same message)
+```
+
+### Dependency Analysis
+
+Before parallelizing, check for dependencies:
+
+| Scenario | Parallel? | Reason |
+|----------|-----------|--------|
+| Edit file A, Edit file B (unrelated) | YES | No dependency |
+| Edit file A, then edit file A again | NO | Same file, sequential |
+| Create class, then use it elsewhere | NO | Creation must complete first |
+| Fix bug in Service, fix bug in Controller | YES | Different files |
+| Run tests for module A and B | YES | Independent test suites |
+| Build, then test | NO | Test depends on build |
+
+### Agent Types for Parallel Work
+
+| Task Type | Agent | Notes |
+|-----------|-------|-------|
+| Code fixes | `general-purpose` | Full editing capability |
+| Code exploration | `Explore` | Read-only, fast |
+| Planning | `Plan` | Architecture decisions |
+| Git operations | `Bash` | Command execution |
+
+### Parallelization Rules
+
+1. **Identify independence first** - Analyze if tasks can run simultaneously
+2. **Single message, multiple tools** - All parallel Task calls in ONE response
+3. **Wait for all** - Don't proceed until all parallel agents complete
+4. **Verify together** - Run final verification after all agents finish
+5. **Handle failures** - If one agent fails, others may still succeed
+
+### CodeRabbit Review Example
+
+When processing 5 CodeRabbit comments on different files:
+
+```
+Comments to process:
+1. PaymentService.java:45 - Add null check
+2. OrderController.java:89 - Fix validation
+3. CreditService.java:23 - Improve error handling
+4. UserRepository.java:67 - Add index hint
+5. ConfigLoader.java:12 - Fix typo
+
+Parallelization plan:
+- Group 1 (parallel): Comments 1, 2, 3, 4, 5 (all different files)
+- Execute: 5 Task agents in ONE message
+- After all complete: Reply to each comment individually
+```
+
+### Performance Expectation
+
+| Sequential | Parallel | Improvement |
+|------------|----------|-------------|
+| 5 fixes × 2 min = 10 min | 5 fixes parallel = 2 min | 5x faster |
+
+**Bottom line: If tasks are independent, they MUST be parallelized. No exceptions.**
+
+---
+
 ### REVIEW CHECKPOINTS
 
 Before marking ANY code complete, verify ALL of the following:
