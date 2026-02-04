@@ -8,7 +8,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @ActiveProfiles("test")
 @DisplayName("Application Context Tests")
-class FluxPayEngineApplicationTest {
+class FluxPayEngineApplicationIntegrationTest {
 
     @Test
     @DisplayName("should load Spring context successfully")
