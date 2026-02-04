@@ -74,34 +74,35 @@ gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/comments/{COMMENT_ID}/replies \
   -f body="REPLY_CONTENT"
 ```
 
-### 4. Reply Format
+### 4. Reply Format (공손한 말투)
 
 **For ACCEPT:**
 ```markdown
-**Decision: ACCEPT**
+리뷰 감사합니다! 좋은 지적이라고 생각합니다.
 
-**Reasoning:** [Technical explanation]
+**수용합니다**
 
-**Changes Made:**
-- [Specific changes with file:line references]
+말씀해주신 부분이 맞습니다. [기술적 이유]
 
-**Verification:** Tests passed
+**변경 사항:**
+- `file.java` (line X): [변경 내용]
 
----
-Applied by Claude Code
+**검증:** 테스트 통과 확인
+
+피드백 감사드립니다!
 ```
 
 **For REJECT:**
 ```markdown
-**Decision: REJECT**
+리뷰 감사합니다! 의견 주신 부분 신중하게 검토했습니다.
 
-**Reasoning:** [Technical explanation with evidence]
+**현재 구현을 유지하려고 합니다**
 
-**Justification:**
-- [Reference to project rules or code evidence]
+**이유:**
+- [기술적 근거]
+- 프로젝트 컨벤션: [관련 규칙]
 
----
-Reviewed by Claude Code
+혹시 제가 놓친 부분이 있다면 말씀해 주세요!
 ```
 
 ### 5. Parallel Processing Strategy

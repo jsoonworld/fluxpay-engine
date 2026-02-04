@@ -113,62 +113,59 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
   -f body="REPLY_CONTENT"
 ```
 
-### Reply Templates
+### Reply Templates (공손한 말투)
 
 #### ACCEPT Template
 ```markdown
-**Decision: ACCEPT**
+리뷰 감사합니다! 좋은 지적이라고 생각합니다.
 
-**Reasoning:**
-[Technical explanation of why this suggestion is valid]
+**수용합니다**
 
-**Changes Made:**
-- [List of specific changes]
-- File: `path/to/file.java` line X-Y
+말씀해주신 부분이 맞습니다. [기술적 이유 설명]
 
-**Verification:**
-- Tests passed: `ClassName#testMethod`
+**변경 사항:**
+- `path/to/file.java` (line X-Y): [구체적인 변경 내용]
 
----
-Applied by Claude Code
+**검증:**
+- 관련 테스트 통과 확인했습니다.
+
+피드백 감사드립니다!
 ```
 
 #### REJECT Template
 ```markdown
-**Decision: REJECT**
+리뷰 감사합니다! 의견 주신 부분 신중하게 검토했습니다.
 
-**Reasoning:**
-[Technical explanation with evidence]
+**현재 구현을 유지하려고 합니다**
 
-**Justification:**
-- [Reference to CLAUDE.md rule if applicable]
-- [Code evidence or architectural reason]
-- [Why current implementation is preferred]
+말씀하신 부분 충분히 이해하지만, 현재 구현을 유지하는 것이 좋을 것 같습니다.
 
-**Example/Evidence:**
-```java
-// Current approach is preferred because...
-```
+**이유:**
+- [기술적 근거 1]
+- [기술적 근거 2]
 
----
-Reviewed by Claude Code
+**참고:**
+- 프로젝트 컨벤션에서 [관련 규칙]을 따르고 있습니다.
+
+혹시 제가 놓친 부분이 있다면 말씀해 주세요. 다시 검토하겠습니다!
 ```
 
 #### PARTIAL ACCEPT Template
 ```markdown
-**Decision: PARTIAL ACCEPT**
+리뷰 감사합니다! 좋은 의견들이 많았습니다.
 
-**Accepted:**
-- [What was accepted and why]
+**일부 수용합니다**
 
-**Rejected:**
-- [What was rejected and why]
+**수용한 부분:**
+- [수용 내용]: 좋은 지적이라 반영했습니다.
 
-**Changes Made:**
-- [List of specific changes]
+**유지한 부분:**
+- [유지 내용]: [유지 이유 설명]
 
----
-Applied by Claude Code
+**변경 사항:**
+- `path/to/file.java`: [구체적인 변경]
+
+추가 의견 있으시면 편하게 말씀해 주세요!
 ```
 
 ## Execution Rules
@@ -253,17 +250,16 @@ If a fix fails:
 4. Continue processing other comments
 
 ```markdown
-**Decision: ACCEPT (FAILED TO APPLY)**
+리뷰 감사합니다! 지적하신 부분 동의합니다.
 
-**Reasoning:**
-[Why the suggestion was valid]
+**수용하려 했으나 적용 중 문제가 발생했습니다**
 
-**Error:**
-[What went wrong during implementation]
+**문제:**
+- [발생한 에러 설명]
 
-**Action Required:**
-Manual review needed for this change.
+**상황:**
+- [시도한 내용]
 
----
-Attempted by Claude Code
+수동 확인이 필요할 것 같습니다. 확인 후 다시 업데이트하겠습니다.
+불편을 드려 죄송합니다!
 ```
