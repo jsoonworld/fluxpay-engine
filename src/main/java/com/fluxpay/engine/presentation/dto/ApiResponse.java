@@ -1,29 +1,24 @@
 package com.fluxpay.engine.presentation.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.List;
 
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiResponse<T> {
-
-    private final boolean isSuccess;
-    private final String code;
-    private final String message;
-    private final T result;
-
-    public static <T> ApiResponse<T> success(T result) {
-        return new ApiResponse<>(true, "SUCCESS", "요청이 성공적으로 처리되었습니다.", result);
-    }
-
-    public static <T> ApiResponse<T> success(T result, String message) {
-        return new ApiResponse<>(true, "SUCCESS", message, result);
+public record ApiResponse<T>(
+    boolean success,
+    T data,
+    ErrorInfo error,
+    ResponseMetadata metadata
+) {
+    public static <T> ApiResponse<T> success(T data) {
+        return new ApiResponse<>(true, data, null, ResponseMetadata.now());
     }
 
     public static <T> ApiResponse<T> error(String code, String message) {
-        return new ApiResponse<>(false, code, message, null);
+        return new ApiResponse<>(false, null, new ErrorInfo(code, message), ResponseMetadata.now());
+    }
+
+    public static <T> ApiResponse<T> validationError(String code, String message, List<FieldError> fieldErrors) {
+        return new ApiResponse<>(false, null,
+            new ErrorInfo(code, message, fieldErrors != null ? fieldErrors : List.of()),
+            ResponseMetadata.now());
     }
 }

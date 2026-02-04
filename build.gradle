@@ -43,6 +43,9 @@ dependencies {
     // OpenAPI (Swagger)
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0'
 
+    // Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -53,6 +56,12 @@ dependencies {
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // Testcontainers
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:r2dbc'
+    testImplementation 'org.testcontainers:junit-jupiter'
 }
 
 tasks.withType(Test) {
