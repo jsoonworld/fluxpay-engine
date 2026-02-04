@@ -45,6 +45,13 @@
 | Message Queue | Kafka | 이벤트 전달, 내구성 |
 | Cache | Redis | Lua Script 기반 원자적 연산 |
 | PG 연동 | 토스페이먼츠 | 국내 표준, 문서화 우수 |
+| Metrics | Micrometer + Prometheus | Spring 생태계 표준, 시계열 DB |
+| JVM Metrics | [rJMX-Exporter](https://github.com/jsoonworld/rJMX-Exporter) | Rust 기반 경량 사이드카, Jolokia 연동 |
+| Tracing | OpenTelemetry + Jaeger | 벤더 중립, CNCF 졸업 프로젝트 |
+| Alerting | Alertmanager + PagerDuty | 알림 그룹핑/라우팅, 온콜 연동 |
+| Log Aggregation | Loki | Grafana 스택 통합, 라벨 기반 쿼리 |
+| Kafka Monitoring | Kafka Exporter | Consumer Lag/DLQ 모니터링 |
+| Dashboard | Grafana | 유연한 시각화, 알림 통합 |
 
 ---
 
@@ -277,18 +284,30 @@
 - [ ] 구독 도메인 구현
 - [ ] 부하 테스트 (k6/Locust)
 
+### Phase 4: Monitoring & Observability
+
+- [ ] Micrometer 비즈니스 메트릭 구현
+- [ ] Jolokia Agent 설정 (JVM 내 HTTP/JSON 엔드포인트)
+- [ ] [rJMX-Exporter](https://github.com/jsoonworld/rJMX-Exporter) 사이드카 배포 (JVM 메트릭 → Prometheus)
+- [ ] Prometheus 스크래핑 설정 (Actuator + rJMX-Exporter + Kafka Exporter)
+- [ ] Grafana 대시보드 구성 (4종)
+- [ ] Alertmanager 알림 규칙 정의 + PagerDuty 연동
+- [ ] Loki 로그 수집 파이프라인 구성
+- [ ] OpenTelemetry + Jaeger 분산 트레이싱 연동
+- [ ] SLA 리포트 자동화
+
 ---
 
 ## 성공 기준
 
-| 카테고리 | 지표 | 목표 |
-|----------|------|------|
-| 정확성 | 결제 성공률 | 99.9% 이상 |
-| 정확성 | 중복 결제 | 0건 |
-| 정합성 | 데이터 일관성 | 30초 내 최종 일관성 (주문-결제-크레딧) |
-| 복원력 | 장애 복구 | 자동 보상 트랜잭션 |
-| 처리량 | 동시 처리 | 1,000 TPS 이상 |
-| 지연 | API 응답 시간 | p95 < 200ms, p99 < 500ms |
+| 카테고리 | 지표 | 목표 | 알림 임계값 |
+|----------|------|------|-------------|
+| 정확성 | 결제 성공률 | 99.9% 이상 | < 99.9% (P2), < 99% (P1) |
+| 정확성 | 중복 결제 | 0건 | > 0건 (P1) |
+| 정합성 | 데이터 일관성 | 30초 내 최종 일관성 | Outbox 적체 > 100 (P3) |
+| 복원력 | Saga 보상 발생 | 최소화 | > 10건/분 (P2) |
+| 처리량 | 동시 처리 | 1,000 TPS 이상 | - |
+| 지연 | API 응답 시간 | p95 < 200ms, p99 < 500ms | p99 > 500ms (P3) |
 
 ---
 
@@ -300,6 +319,7 @@
 | 민감 데이터 암호화 | AES-256-GCM (전화번호, 이메일 등) |
 | 암호화 키 관리 | AWS KMS 또는 Vault 연동 |
 | 접근 통제 | API Key + HMAC 서명 검증 |
+| 관리 엔드포인트 | /actuator/*, Jolokia는 내부망 전용 (NetworkPolicy, 127.0.0.1 바인딩) |
 | 감사 로그 | 모든 결제/환불 요청 기록 (7년 보관) |
 | 컴플라이언스 | PCI-DSS SAQ-A 준수 (카드 정보 미저장) |
 
@@ -310,11 +330,216 @@
 | 항목 | 구현 방식 |
 |------|----------|
 | 추적 ID | X-Request-Id 헤더, 모든 로그/이벤트에 전파 |
-| 분산 트레이싱 | OpenTelemetry + Jaeger/Tempo |
-| 메트릭 | Micrometer + Prometheus |
-| 알림 | 결제 실패율 1% 초과 시 PagerDuty 연동 |
+| 분산 트레이싱 | OpenTelemetry + Jaeger |
+| 메트릭 | Micrometer + Prometheus + rJMX-Exporter |
+| 로그 수집 | Loki (Grafana 스택 통합) |
+| 알림 | 결제 성공률 < 99.9% 시 PagerDuty 연동 |
 | DLQ 모니터링 | DLQ 메시지 1건 이상 시 알림 |
 | 리플레이 정책 | Outbox 이벤트 수동 재발행 API 제공 |
+
+---
+
+## 모니터링 아키텍처
+
+### 전체 구성
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Monitoring Stack                                 │
+│                                                                         │
+│  ┌─────────────┐     ┌──────────────┐     ┌─────────────────────────┐  │
+│  │   Grafana   │◀────│  Prometheus  │────▶│  Alertmanager/PagerDuty │  │
+│  │ (Dashboard) │     │  (Time-Series│     │  (알림 라우팅)            │  │
+│  └─────────────┘     │    DB)       │     └─────────────────────────┘  │
+│                      └──────┬───────┘                                   │
+│                             │ scrape                                    │
+│              ┌──────────────┼──────────────┐                           │
+│              ▼              ▼              ▼                           │
+│      ┌─────────────┐ ┌─────────────┐ ┌─────────────┐                  │
+│      │ /actuator/  │ │ rJMX-Exporter│ │   Kafka    │                  │
+│      │ prometheus  │ │  :9090      │ │  Exporter  │                  │
+│      │ (Micrometer)│ │  (JVM 메트릭)│ │            │                  │
+│      └──────┬──────┘ └──────┬──────┘ └─────────────┘                  │
+│             │               │ Jolokia (HTTP/JSON)                      │
+│             └───────────────┼──────────────────────                    │
+│                             ▼                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐ │
+│  │                     FluxPay Engine (JVM)                          │ │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────────┐  │ │
+│  │  │ Jolokia  │  │Micrometer│  │ OpenTele │  │  Structured Log  │  │ │
+│  │  │ Agent    │  │ Registry │  │ metry    │  │  (JSON → Loki)   │  │ │
+│  │  └──────────┘  └──────────┘  └─────┬────┘  └──────────────────┘  │ │
+│  └────────────────────────────────────┼─────────────────────────────┘ │
+│                                       ▼                               │
+│                              ┌──────────────┐                         │
+│                              │    Jaeger    │                         │
+│                              │  (Tracing)   │                         │
+│                              └──────────────┘                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### rJMX-Exporter 선택 이유
+
+> [rJMX-Exporter](https://github.com/jsoonworld/rJMX-Exporter): Rust 기반 경량 JMX 메트릭 수집기. Jolokia HTTP/JSON 프로토콜을 통해 JVM 메트릭을 수집하여 Prometheus 형식으로 노출.
+
+| 항목 | 기존 jmx_exporter (Java Agent) | rJMX-Exporter (Rust Sidecar) |
+|------|-------------------------------|------------------------------|
+| 메모리 사용량 | ~50MB+ | **<10MB** |
+| 시작 시간 | 2-5초 | **<100ms** |
+| 런타임 의존성 | JVM 힙 공유 | **네이티브 바이너리** |
+| 애플리케이션 영향 | 있음 (GC, 쓰레드 공유) | **없음 (프로세스 격리)** |
+| JMX 접근 방식 | 직접 MBean 접근 | Jolokia HTTP/JSON |
+
+- **경량화**: 사이드카 패턴으로 배포 시 리소스 효율 극대화
+- **격리**: 모니터링 장애가 결제 시스템에 영향을 주지 않음
+- **빠른 복구**: 100ms 이내 재시작으로 메트릭 수집 갭 최소화
+
+> **사전 요구사항**: 애플리케이션에 Jolokia Agent가 설치되어 있어야 합니다.
+
+### 메트릭 수집 전략
+
+```
+[Micrometer]                    [rJMX-Exporter]
+비즈니스 메트릭                  JVM 인프라 메트릭
+├─ 결제 성공/실패 수              ├─ Heap/Non-Heap 메모리
+├─ 주문 처리량 (TPS)             ├─ GC 횟수/시간
+├─ 크레딧 차감/환불              ├─ Thread 상태
+├─ Saga 보상 트랜잭션            ├─ Class Loading
+├─ 대기열 크기                   └─ JIT 컴파일
+└─ API 응답 시간
+```
+
+---
+
+## 핵심 모니터링 메트릭
+
+### 비즈니스 메트릭 (Micrometer)
+
+| 메트릭명 | 타입 | 설명 | 알림 임계값 |
+|----------|------|------|-------------|
+| `fluxpay_payment_total` | Counter | 결제 시도 수 (status 라벨) | - |
+| `fluxpay_payment_success_rate` | Gauge | 결제 성공률 | < 99.9% (P2), < 99% (P1) |
+| `fluxpay_payment_latency_seconds` | Histogram | 결제 처리 시간 | p99 > 500ms |
+| `fluxpay_order_created_total` | Counter | 주문 생성 수 | - |
+| `fluxpay_credit_balance_total` | Gauge | 전체 크레딧 잔액 합계 | - |
+| `fluxpay_credit_transactions_total` | Counter | 크레딧 거래 수 (type 라벨: charge/use/refund) | - |
+| `fluxpay_saga_compensation_total` | Counter | Saga 보상 트랜잭션 수 | > 10건/min |
+| `fluxpay_outbox_pending_count` | Gauge | 미발행 Outbox 이벤트 | > 100 |
+| `fluxpay_waiting_room_queue_size` | Gauge | 대기열 크기 | > 10,000 |
+| `fluxpay_idempotent_hit_total` | Counter | 멱등 키 캐시 히트 | - |
+
+### JVM 메트릭 (rJMX-Exporter)
+
+| 메트릭명 | 설명 | 알림 임계값 |
+|----------|------|-------------|
+| `jvm_memory_heap_used_bytes` | 힙 메모리 사용량 | > 80% of max |
+| `jvm_memory_heap_max_bytes` | 힙 메모리 최대값 | - |
+| `jvm_gc_collection_seconds_count` | GC 횟수 | - |
+| `jvm_gc_collection_seconds_sum` | GC 총 소요 시간 | > 5s/min |
+| `jvm_threads_current` | 현재 쓰레드 수 | > 500 |
+| `jvm_threads_deadlocked` | 데드락 쓰레드 | > 0 |
+
+### 인프라 메트릭
+
+| 대상 | 메트릭 | 알림 임계값 |
+|------|--------|-------------|
+| Kafka | Consumer Lag | > 10,000 |
+| Kafka | DLQ 메시지 수 | > 0 |
+| Redis | 메모리 사용률 | > 80% |
+| Redis | 연결 수 | > 1,000 |
+| PostgreSQL | Active Connections | > 80% of max |
+| PostgreSQL | Replication Lag | > 1s |
+
+---
+
+## 알림 전략
+
+### 심각도 분류
+
+| 레벨 | 응답 시간 | 예시 |
+|------|----------|------|
+| P1 (Critical) | 5분 이내 | 결제 전면 장애, 결제 성공률 99% 미만, 데이터 유실 위험 |
+| P2 (High) | 30분 이내 | 결제 성공률 99.9% 미만, Saga 보상 급증 (10건/분 초과) |
+| P3 (Medium) | 4시간 이내 | 응답 지연 (p99 > 500ms), 메모리 경고 |
+| P4 (Low) | 다음 업무일 | 경미한 성능 저하 |
+
+### 핵심 알림 규칙
+
+```yaml
+# P1: 결제 시스템 다운
+- alert: PaymentSystemDown
+  expr: up{job="fluxpay"} == 0
+  for: 1m
+  labels:
+    severity: critical
+
+# P2: 결제 성공률 저하
+- alert: PaymentSuccessRateLow
+  expr: fluxpay_payment_success_rate < 0.999
+  for: 5m
+  labels:
+    severity: high
+
+# P1: 결제 성공률 급락
+- alert: PaymentSuccessRateCritical
+  expr: fluxpay_payment_success_rate < 0.99
+  for: 2m
+  labels:
+    severity: critical
+
+# P2: Saga 보상 급증 (10건/분 초과)
+- alert: SagaCompensationSpike
+  expr: increase(fluxpay_saga_compensation_total[1m]) > 10
+  for: 2m
+  labels:
+    severity: high
+
+# P3: Outbox 적체
+- alert: OutboxBacklog
+  expr: fluxpay_outbox_pending_count > 100
+  for: 10m
+  labels:
+    severity: medium
+
+# P3: JVM 힙 메모리 경고
+- alert: JvmHeapMemoryHigh
+  expr: jvm_memory_heap_used_bytes / jvm_memory_heap_max_bytes > 0.8
+  for: 5m
+  labels:
+    severity: medium
+```
+
+---
+
+## 대시보드 구성
+
+### 1. Executive Dashboard (경영진용)
+
+- 일별 결제 처리량 및 금액
+- 결제 성공률 추이
+- 주요 장애 타임라인
+
+### 2. Operations Dashboard (운영팀용)
+
+- 실시간 TPS 및 응답 시간
+- 에러율 및 에러 유형 분포
+- 대기열 상태 (Virtual Waiting Room)
+- Kafka Consumer Lag
+- DLQ 메시지 현황
+
+### 3. Engineering Dashboard (개발팀용)
+
+- JVM 힙/GC 상태 (rJMX-Exporter)
+- 쓰레드 풀 상태 (WebFlux Event Loop)
+- DB 커넥션 풀 상태
+- Saga 상태 전이 흐름
+- Outbox 발행 지연
+
+### 4. SLA Dashboard
+
+- 월간 가용성 (목표: 99.9%)
+- API 응답 시간 SLO 달성률
+- 중복 결제 발생 건수 (목표: 0건)
 
 ---
 
@@ -332,3 +557,5 @@
 `Spring WebFlux` `Project Reactor` `Kafka` `Redis Lua Script`
 `Saga Pattern` `Transactional Outbox` `Idempotent API`
 `Virtual Waiting Room` `Rate Limiting` `Event-Driven Architecture`
+`Prometheus` `Grafana` `rJMX-Exporter` `Jolokia` `Micrometer`
+`OpenTelemetry` `Jaeger` `Loki` `Alertmanager` `SLA Monitoring`
