@@ -26,9 +26,9 @@ reviews:
     base_branches:
       - main
       - develop
-      - "feature/*"
-      - "bugfix/*"
-      - "hotfix/*"
+      - "^feature/.*$"
+      - "^bugfix/.*$"
+      - "^hotfix/.*$"
 
 chat:
   auto_reply: true

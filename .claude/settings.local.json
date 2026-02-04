@@ -7,8 +7,10 @@
       "Bash(./gradlew bootRun*)",
       "Bash(docker-compose*)",
       "Bash(git *)",
-      "Bash(chmod:*)",
-      "Bash(./.githooks/setup.sh:*)"
+      "Bash(chmod *)",
+      "Bash(./.githooks/setup.sh *)",
+      "Bash(gh pr *)",
+      "Bash(gh api *)"
     ],
     "deny": []
   }
