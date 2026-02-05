@@ -1031,12 +1031,73 @@ fix: Prevent duplicate payment processing
 Add idempotency check before initiating payment transaction.
 ```
 
+### Commit Size Guidelines (MANDATORY)
+
+Small, focused commits are **required** for this project. Large commits make code review impossible and hide bugs.
+
+#### Size Limits
+
+| Metric | Limit | Rationale |
+|--------|-------|-----------|
+| Lines changed | **≤ 400 lines** | Reviewable in one sitting |
+| Files changed | **≤ 10 files** | Focused scope |
+| Concepts per commit | **1 concept** | Single responsibility |
+
+#### TDD Commit Pattern
+
+Follow the Red-Green-Refactor cycle with commits:
+
+```text
+test: Add failing test for Order validation          (~50 lines)
+feat: Implement Order validation logic               (~100 lines)
+refactor: Extract validation to separate method      (~30 lines)
+test: Add edge case tests for Order validation       (~80 lines)
+feat: Handle edge cases in Order validation          (~50 lines)
+```
+
+#### What Belongs in ONE Commit
+
+**GOOD** - Single logical change:
+```text
+feat: Add OrderStatus enum with state transitions
+feat: Add Order entity with basic fields
+feat: Add Order validation rules
+test: Add Order state transition tests
+feat: Implement Order state machine
+```
+
+**BAD** - Multiple unrelated changes:
+```text
+feat: Implement Order domain with hexagonal architecture  (30 files, 4,600 lines)
+```
+
+#### Breaking Down Large Features
+
+When implementing a large feature (e.g., "Order domain"), break it into:
+
+1. **Value Objects first**: `OrderId`, `Money`, `Currency` (separate commits)
+2. **Entity skeleton**: Basic `Order` entity without behavior
+3. **Behavior incrementally**: One state transition or method per commit
+4. **Repository port**: Interface definition
+5. **Repository adapter**: Implementation
+6. **Service layer**: Use case implementation
+
+Each step should have its own test + implementation commit pair.
+
+#### Commit Frequency
+
+- Commit after each **passing test** (Green phase)
+- Commit after each **refactoring** (Refactor phase)
+- Never commit with **failing tests**
+- Aim for **5-15 commits per PR** for significant features
+
 ### Pull Request Guidelines
 1. All code and comments MUST be in English
 2. PRs require at least one approval
 3. All tests must pass
 4. Code coverage must not decrease
 5. Link related issues in PR description
+6. **PRs should have ≤ 400 lines changed** (excluding generated files)
 
 ---
 

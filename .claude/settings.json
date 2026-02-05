@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/check-commit-size.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(git add*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/check-commit-size.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
