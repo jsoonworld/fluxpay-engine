@@ -19,6 +19,10 @@ public enum ErrorCode {
     // Validation Errors (VAL_xxx)
     VALIDATION_FAILED("VAL_001", HttpStatus.BAD_REQUEST, "요청 검증에 실패했습니다"),
 
+    // Tenant Errors (TNT_xxx)
+    TENANT_HEADER_MISSING("TNT_001", HttpStatus.BAD_REQUEST, "X-Tenant-Id 헤더가 필요합니다"),
+    TENANT_NOT_FOUND("TNT_002", HttpStatus.NOT_FOUND, "알 수 없는 테넌트입니다"),
+
     // System Errors (SYS_xxx)
     INTERNAL_SERVER_ERROR("SYS_001", HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버 오류가 발생했습니다"),
     SERVICE_UNAVAILABLE("SYS_002", HttpStatus.SERVICE_UNAVAILABLE, "서비스를 일시적으로 사용할 수 없습니다"),

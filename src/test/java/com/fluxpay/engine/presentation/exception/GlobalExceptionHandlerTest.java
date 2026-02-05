@@ -5,6 +5,7 @@ import com.fluxpay.engine.domain.exception.InvalidPaymentStateException;
 import com.fluxpay.engine.domain.exception.OrderNotFoundException;
 import com.fluxpay.engine.domain.exception.PaymentNotFoundException;
 import com.fluxpay.engine.domain.exception.PaymentProcessingException;
+import com.fluxpay.engine.infrastructure.tenant.TenantNotFoundException;
 import com.fluxpay.engine.domain.model.order.OrderId;
 import com.fluxpay.engine.domain.model.order.OrderStatus;
 import com.fluxpay.engine.domain.model.payment.PaymentId;
@@ -393,6 +394,35 @@ class GlobalExceptionHandlerTest {
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("VAL_001");
             assertThat(body.error().message()).isEqualTo("요청 검증에 실패했습니다");
+            assertThat(body.error().fieldErrors()).isEmpty();
+            assertThat(body.metadata()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("handleTenantNotFoundException")
+    class HandleTenantNotFoundException {
+
+        @Test
+        @DisplayName("should return BAD_REQUEST with TNT_001 error code")
+        void shouldHandleTenantNotFoundException() {
+            // Given
+            TenantNotFoundException exception = new TenantNotFoundException("X-Tenant-Id header is required");
+
+            // When
+            ResponseEntity<ApiResponse<Void>> response = handler.handleTenantNotFoundException(exception).block();
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
+            ApiResponse<Void> body = response.getBody();
+            assertThat(body).isNotNull();
+            assertThat(body.success()).isFalse();
+            assertThat(body.data()).isNull();
+            assertThat(body.error()).isNotNull();
+            assertThat(body.error().code()).isEqualTo("TNT_001");
+            assertThat(body.error().message()).isEqualTo("X-Tenant-Id 헤더가 필요합니다");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
