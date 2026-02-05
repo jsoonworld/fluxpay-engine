@@ -42,6 +42,9 @@ import static org.mockito.Mockito.when;
 @Import(GlobalExceptionHandler.class)
 class PaymentControllerTest {
 
+    private static final String TENANT_HEADER = "X-Tenant-Id";
+    private static final String TEST_TENANT_ID = "test-tenant";
+
     @Autowired
     private WebTestClient webTestClient;
 
@@ -93,6 +96,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -120,6 +124,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -142,6 +147,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -164,6 +170,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -206,6 +213,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/approve")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -246,6 +254,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/approve")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -268,6 +277,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/approve")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -286,6 +296,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/approve")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -326,6 +337,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/confirm")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
@@ -345,6 +357,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/confirm")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody()
@@ -363,6 +376,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/confirm")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
@@ -385,6 +399,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.get()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
@@ -407,6 +422,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.get()
                 .uri(BASE_URL + "/" + nonExistentId)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody()
@@ -420,6 +436,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.get()
                 .uri(BASE_URL + "/invalid-uuid")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()

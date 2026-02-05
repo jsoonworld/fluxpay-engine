@@ -38,6 +38,9 @@ import static org.mockito.Mockito.when;
 @Import(GlobalExceptionHandler.class)
 class OrderControllerTest {
 
+    private static final String TENANT_HEADER = "X-Tenant-Id";
+    private static final String TEST_TENANT_ID = "test-tenant";
+
     @Autowired
     private WebTestClient webTestClient;
 
@@ -93,6 +96,7 @@ class OrderControllerTest {
         // When & Then
         webTestClient.post()
             .uri("/api/v1/orders")
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .exchange()
@@ -123,6 +127,7 @@ class OrderControllerTest {
         // When & Then
         webTestClient.post()
             .uri("/api/v1/orders")
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .exchange()
@@ -154,6 +159,7 @@ class OrderControllerTest {
         // When & Then
         webTestClient.post()
             .uri("/api/v1/orders")
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(invalidRequestJson)
             .exchange()
@@ -184,6 +190,7 @@ class OrderControllerTest {
         // When & Then
         webTestClient.post()
             .uri("/api/v1/orders")
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .exchange()
@@ -215,6 +222,7 @@ class OrderControllerTest {
         // When & Then
         webTestClient.post()
             .uri("/api/v1/orders")
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(invalidRequestJson)
             .exchange()
@@ -246,6 +254,7 @@ class OrderControllerTest {
         // When & Then
         webTestClient.post()
             .uri("/api/v1/orders")
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(invalidRequestJson)
             .exchange()
@@ -268,6 +277,7 @@ class OrderControllerTest {
         // When & Then
         webTestClient.get()
             .uri("/api/v1/orders/{orderId}", orderId)
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .exchange()
             .expectStatus().isOk()
             .expectBody()
@@ -290,6 +300,7 @@ class OrderControllerTest {
         // When & Then
         webTestClient.get()
             .uri("/api/v1/orders/{orderId}", nonExistentOrderId)
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .exchange()
             .expectStatus().isNotFound()
             .expectBody()
@@ -308,6 +319,7 @@ class OrderControllerTest {
         // When & Then
         webTestClient.get()
             .uri("/api/v1/orders/{orderId}", invalidOrderId)
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .exchange()
             .expectStatus().isBadRequest()
             .expectBody()
@@ -338,6 +350,7 @@ class OrderControllerTest {
                 .path("/api/v1/orders")
                 .queryParam("userId", testUserId)
                 .build())
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .exchange()
             .expectStatus().isOk()
             .expectBody()
@@ -363,6 +376,7 @@ class OrderControllerTest {
                 .path("/api/v1/orders")
                 .queryParam("userId", userWithNoOrders)
                 .build())
+            .header(TENANT_HEADER, TEST_TENANT_ID)
             .exchange()
             .expectStatus().isOk()
             .expectBody()

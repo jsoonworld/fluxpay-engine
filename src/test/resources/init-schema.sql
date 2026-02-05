@@ -1,4 +1,5 @@
 -- FluxPay Engine - Test Schema for Testcontainers
+-- This schema mirrors production constraints for accurate testing
 
 -- Orders Table
 CREATE TABLE IF NOT EXISTS orders (
@@ -10,6 +11,7 @@ CREATE TABLE IF NOT EXISTS orders (
     metadata TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    tenant_id VARCHAR(50) NOT NULL DEFAULT 'default',
     paid_at TIMESTAMP WITH TIME ZONE,
     completed_at TIMESTAMP WITH TIME ZONE
 );
@@ -23,7 +25,8 @@ CREATE TABLE IF NOT EXISTS order_line_items (
     quantity INTEGER NOT NULL,
     unit_price DECIMAL(19, 4) NOT NULL,
     total_price DECIMAL(19, 4) NOT NULL,
-    currency VARCHAR(3) NOT NULL
+    currency VARCHAR(3) NOT NULL,
+    tenant_id VARCHAR(50) NOT NULL DEFAULT 'default'
 );
 
 -- Payments Table
@@ -43,6 +46,7 @@ CREATE TABLE IF NOT EXISTS payments (
     failed_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    tenant_id VARCHAR(50) NOT NULL DEFAULT 'default',
     version BIGINT DEFAULT 0,
 
     CONSTRAINT chk_payment_status CHECK (status IN ('READY', 'PROCESSING', 'APPROVED', 'CONFIRMED', 'FAILED', 'REFUNDED')),
