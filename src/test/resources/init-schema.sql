@@ -64,3 +64,24 @@ CREATE INDEX IF NOT EXISTS idx_payments_created_at ON payments(created_at);
 
 -- Unique constraint: one payment per order (policy: single payment per order)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_order_id_unique ON payments(order_id);
+
+-- Idempotency Keys Table
+-- Note: Using TEXT for response in test schema for simpler String mapping.
+-- Production schema (V5) uses JSONB with a custom converter.
+CREATE TABLE IF NOT EXISTS idempotency_keys (
+    id              BIGSERIAL PRIMARY KEY,
+    tenant_id       VARCHAR(50) NOT NULL,
+    endpoint        VARCHAR(200) NOT NULL,
+    idempotency_key VARCHAR(100) NOT NULL,
+    payload_hash    VARCHAR(64) NOT NULL,
+    response        TEXT NOT NULL,
+    http_status     INT NOT NULL,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    expires_at      TIMESTAMP WITH TIME ZONE NOT NULL,
+
+    CONSTRAINT uk_idempotency UNIQUE (tenant_id, endpoint, idempotency_key)
+);
+
+-- Idempotency Indexes
+CREATE INDEX IF NOT EXISTS idx_idempotency_expires ON idempotency_keys (expires_at);
+CREATE INDEX IF NOT EXISTS idx_idempotency_tenant_id ON idempotency_keys (tenant_id);

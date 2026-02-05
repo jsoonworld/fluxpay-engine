@@ -93,6 +93,13 @@ fluxpay:
   tenant:
     enabled: false  # default disabled for test compatibility
 
+  idempotency:
+    enabled: true
+    ttl: 24h
+    redis:
+      key-prefix: idempotency
+      timeout: 3s
+
   tenants:
     configs:
       default:

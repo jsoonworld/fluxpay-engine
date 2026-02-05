@@ -18,6 +18,10 @@ public enum ErrorCode {
 
     // Validation Errors (VAL_xxx)
     VALIDATION_FAILED("VAL_001", HttpStatus.BAD_REQUEST, "요청 검증에 실패했습니다"),
+    IDEMPOTENCY_KEY_MISSING("VAL_002", HttpStatus.BAD_REQUEST, "X-Idempotency-Key 헤더가 필요합니다"),
+    IDEMPOTENCY_KEY_INVALID("VAL_003", HttpStatus.BAD_REQUEST, "유효하지 않은 멱등 키 형식입니다 (UUID 필요)"),
+    IDEMPOTENCY_CONFLICT("VAL_004", HttpStatus.UNPROCESSABLE_ENTITY, "동일한 멱등 키에 다른 페이로드가 사용되었습니다"),
+    IDEMPOTENCY_PROCESSING("VAL_005", HttpStatus.CONFLICT, "동일한 멱등 키로 요청이 처리 중입니다. 잠시 후 다시 시도해주세요"),
 
     // Tenant Errors (TNT_xxx)
     TENANT_HEADER_MISSING("TNT_001", HttpStatus.BAD_REQUEST, "X-Tenant-Id 헤더가 필요합니다"),
