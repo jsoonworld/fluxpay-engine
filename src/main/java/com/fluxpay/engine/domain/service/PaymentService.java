@@ -128,21 +128,58 @@ public class PaymentService {
 
     /**
      * Confirms a payment (captures the funds).
-     * Transitions the payment from APPROVED to CONFIRMED.
+     * Calls the PG to confirm the payment, then transitions from APPROVED to CONFIRMED.
      *
      * @param paymentId the payment ID
-     * @return a Mono containing the confirmed payment
+     * @return a Mono containing the confirmed payment (or failed payment if PG confirm fails)
      * @throws PaymentNotFoundException if the payment is not found
      * @throws com.fluxpay.engine.domain.exception.InvalidPaymentStateException if payment is not in APPROVED status
      */
     public Mono<Payment> confirmPayment(PaymentId paymentId) {
         return paymentRepository.findById(paymentId)
             .switchIfEmpty(Mono.error(new PaymentNotFoundException(paymentId)))
-            .flatMap(payment -> {
-                payment.confirm();
+            .flatMap(this::requestPgConfirmation)
+            .doOnSuccess(payment -> {
+                if (payment.getStatus() == PaymentStatus.CONFIRMED) {
+                    log.info("Payment confirmed: id={}", payment.getId());
+                } else {
+                    log.warn("Payment confirmation failed: id={}, reason={}",
+                        payment.getId(), payment.getFailureReason());
+                }
+            });
+    }
+
+    private Mono<Payment> requestPgConfirmation(Payment payment) {
+        // Validate state before calling PG
+        if (payment.getStatus() != PaymentStatus.APPROVED) {
+            return Mono.error(new com.fluxpay.engine.domain.exception.InvalidPaymentStateException(
+                payment.getStatus(), PaymentStatus.CONFIRMED));
+        }
+
+        return pgClient.confirmPayment(
+                payment.getPgPaymentKey(),
+                payment.getOrderId().value().toString(),
+                payment.getAmount())
+            .flatMap(result -> {
+                if (result.success()) {
+                    payment.confirm();
+                } else {
+                    payment.fail(result.errorMessage());
+                }
                 return paymentRepository.save(payment);
             })
-            .doOnSuccess(payment -> log.info("Payment confirmed: id={}", payment.getId()));
+            .onErrorResume(PgClientException.class, ex -> {
+                log.error("PG client error during confirmation for payment {}: {}",
+                    payment.getId(), ex.getMessage());
+                payment.fail("PG error: " + ex.getMessage());
+                return paymentRepository.save(payment);
+            })
+            .onErrorResume(ex -> {
+                log.error("Unexpected error during PG confirmation for payment {}: {}",
+                    payment.getId(), ex.getMessage(), ex);
+                payment.fail("Unexpected error: " + ex.getMessage());
+                return paymentRepository.save(payment);
+            });
     }
 
     /**

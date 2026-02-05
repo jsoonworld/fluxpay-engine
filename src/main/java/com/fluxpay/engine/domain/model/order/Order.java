@@ -77,6 +77,9 @@ public class Order {
         if (lineItems == null || lineItems.isEmpty()) {
             throw new IllegalArgumentException("Order must have at least one line item");
         }
+        if (lineItems.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("Line items cannot contain null elements");
+        }
 
         OrderId id = OrderId.generate();
         Money totalAmount = calculateTotalAmount(lineItems, currency);

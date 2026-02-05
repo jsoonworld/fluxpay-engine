@@ -60,7 +60,8 @@ public class R2dbcPaymentRepository implements PaymentRepository {
                     } else {
                         log.debug("Payment not found: id={}", id);
                     }
-                });
+                })
+                .doOnError(error -> log.error("Failed to find payment by id: {}", id, error));
     }
 
     @Override
@@ -75,7 +76,8 @@ public class R2dbcPaymentRepository implements PaymentRepository {
                     } else {
                         log.debug("Payment not found for orderId: {}", orderId);
                     }
-                });
+                })
+                .doOnError(error -> log.error("Failed to find payment by orderId: {}", orderId, error));
     }
 
     @Override
@@ -84,7 +86,8 @@ public class R2dbcPaymentRepository implements PaymentRepository {
 
         return r2dbcRepository.findByStatus(status.name())
                 .map(mapper::toDomain)
-                .doOnComplete(() -> log.debug("Completed finding payments for status: {}", status));
+                .doOnComplete(() -> log.debug("Completed finding payments for status: {}", status))
+                .doOnError(error -> log.error("Failed to find payments by status: {}", status, error));
     }
 
     @Override
@@ -99,7 +102,8 @@ public class R2dbcPaymentRepository implements PaymentRepository {
                     } else {
                         log.debug("Payment not found for pgPaymentKey: {}", pgPaymentKey);
                     }
-                });
+                })
+                .doOnError(error -> log.error("Failed to find payment by pgPaymentKey: {}", pgPaymentKey, error));
     }
 
     @Override
@@ -107,6 +111,7 @@ public class R2dbcPaymentRepository implements PaymentRepository {
         log.debug("Checking if payment exists: id={}", id);
 
         return r2dbcRepository.existsById(id.value())
-                .doOnSuccess(exists -> log.debug("Payment exists check: id={}, exists={}", id, exists));
+                .doOnSuccess(exists -> log.debug("Payment exists check: id={}, exists={}", id, exists))
+                .doOnError(error -> log.error("Failed to check if payment exists: id={}", id, error));
     }
 }

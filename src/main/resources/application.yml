@@ -77,7 +77,7 @@ fluxpay:
   pg:
     toss:
       api-url: https://api.tosspayments.com/v1
-      secret-key: ${TOSS_SECRET_KEY:test_sk_XXXXXXXXXXXXXXX}
+      secret-key: ${TOSS_SECRET_KEY}
       connect-timeout: 3s
       read-timeout: 10s
 
