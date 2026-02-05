@@ -1,9 +1,13 @@
 package com.fluxpay.engine.presentation.exception;
 
+import com.fluxpay.engine.domain.exception.InvalidOrderStateException;
+import com.fluxpay.engine.domain.exception.InvalidPaymentStateException;
+import com.fluxpay.engine.domain.exception.OrderNotFoundException;
+import com.fluxpay.engine.domain.exception.PaymentNotFoundException;
+import com.fluxpay.engine.domain.exception.PaymentProcessingException;
 import com.fluxpay.engine.presentation.dto.ApiResponse;
 import com.fluxpay.engine.presentation.dto.FieldError;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -28,15 +32,57 @@ public class GlobalExceptionHandler {
 
         return Mono.just(ResponseEntity
             .badRequest()
-            .body(ApiResponse.validationError("VAL_001", "Validation failed", fieldErrors)));
+            .body(ApiResponse.validationError(
+                ErrorCode.VALIDATION_FAILED.getCode(),
+                ErrorCode.VALIDATION_FAILED.getMessage(),
+                fieldErrors)));
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleOrderNotFoundException(OrderNotFoundException ex) {
+        log.warn("Order not found: {}", ex.getMessage());
+        return createErrorResponse(ErrorCode.ORDER_NOT_FOUND);
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handlePaymentNotFoundException(PaymentNotFoundException ex) {
+        log.warn("Payment not found: {}", ex.getMessage());
+        return createErrorResponse(ErrorCode.PAYMENT_NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidOrderStateException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleInvalidOrderStateException(InvalidOrderStateException ex) {
+        log.warn("Invalid order state transition: {}", ex.getMessage());
+        return createErrorResponse(ErrorCode.INVALID_ORDER_STATE);
+    }
+
+    @ExceptionHandler(InvalidPaymentStateException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleInvalidPaymentStateException(InvalidPaymentStateException ex) {
+        log.warn("Invalid payment state transition: {}", ex.getMessage());
+        return createErrorResponse(ErrorCode.INVALID_PAYMENT_STATE);
+    }
+
+    @ExceptionHandler(PaymentProcessingException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handlePaymentProcessingException(PaymentProcessingException ex) {
+        log.error("Payment processing error: {}", ex.getMessage(), ex);
+        return createErrorResponse(ErrorCode.PG_CONNECTION_ERROR);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("Validation failed: {}", ex.getMessage());
+        return createErrorResponse(ErrorCode.VALIDATION_FAILED);
     }
 
     @ExceptionHandler(Exception.class)
     public Mono<ResponseEntity<ApiResponse<Void>>> handleGenericException(Exception ex) {
         log.error("Unhandled exception: ", ex);
+        return createErrorResponse(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
 
+    private Mono<ResponseEntity<ApiResponse<Void>>> createErrorResponse(ErrorCode errorCode) {
         return Mono.just(ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ApiResponse.error("SYS_001", "Internal server error")));
+            .status(errorCode.getHttpStatus())
+            .body(ApiResponse.error(errorCode.getCode(), errorCode.getMessage())));
     }
 }
