@@ -42,6 +42,9 @@ public class OrderLineItemEntity implements Persistable<UUID> {
     @Column("currency")
     private String currency;
 
+    @Column("tenant_id")
+    private String tenantId;
+
     // Default constructor for R2DBC
     public OrderLineItemEntity() {
     }
@@ -110,6 +113,14 @@ public class OrderLineItemEntity implements Persistable<UUID> {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
     }
 
     @Override
