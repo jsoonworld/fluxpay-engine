@@ -1,0 +1,21 @@
+spring:
+  r2dbc:
+    url: r2dbc:tc:postgresql:///fluxpay?TC_IMAGE_TAG=16-alpine
+    username: test
+    password: test
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+logging:
+  level:
+    root: WARN
+    com.fluxpay.engine: DEBUG
+
+fluxpay:
+  pg:
+    toss:
+      api-url: http://localhost:8089
+      secret-key: test_sk_test
