@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidEasyPayProvider {
-    String message() default "간편결제 시 easyPayProvider는 필수입니다";
+    String message() default "easyPayProvider is required for EASY_PAY payments";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

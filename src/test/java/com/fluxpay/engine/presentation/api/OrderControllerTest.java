@@ -7,6 +7,10 @@ import com.fluxpay.engine.domain.model.order.Order;
 import com.fluxpay.engine.domain.model.order.OrderId;
 import com.fluxpay.engine.domain.model.order.OrderLineItem;
 import com.fluxpay.engine.domain.service.OrderService;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyKey;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyResult;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyService;
+import com.fluxpay.engine.infrastructure.tenant.TenantWebFilter;
 import com.fluxpay.engine.presentation.dto.request.CreateOrderRequest;
 import com.fluxpay.engine.presentation.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import java.time.Duration;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -35,17 +43,23 @@ import static org.mockito.Mockito.when;
  * Tests all order API endpoints using WebFluxTest.
  */
 @WebFluxTest(OrderController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TenantWebFilter.class})
+@org.springframework.test.context.TestPropertySource(properties = "fluxpay.tenant.enabled=true")
 class OrderControllerTest {
 
     private static final String TENANT_HEADER = "X-Tenant-Id";
     private static final String TEST_TENANT_ID = "test-tenant";
+    private static final String IDEMPOTENCY_HEADER = "X-Idempotency-Key";
+    private static final String TEST_IDEMPOTENCY_KEY = "550e8400-e29b-41d4-a716-446655440000";
 
     @Autowired
     private WebTestClient webTestClient;
 
     @MockBean
     private OrderService orderService;
+
+    @MockBean
+    private IdempotencyService idempotencyService;
 
     private Order testOrder;
     private final String testUserId = "user-123";
@@ -64,6 +78,14 @@ class OrderControllerTest {
             Currency.KRW,
             Map.of("note", "test order")
         );
+
+        // Configure IdempotencyService mock to always return MISS (pass through)
+        when(idempotencyService.acquireLock(any(IdempotencyKey.class), anyString(), any(Duration.class)))
+            .thenReturn(reactor.core.publisher.Mono.just(IdempotencyResult.miss()));
+        when(idempotencyService.store(any(IdempotencyKey.class), anyString(), anyString(), anyInt(), any(Duration.class)))
+            .thenReturn(reactor.core.publisher.Mono.empty());
+        when(idempotencyService.releaseLock(any(IdempotencyKey.class)))
+            .thenReturn(reactor.core.publisher.Mono.empty());
     }
 
     // ===== POST /api/v1/orders - Create Order Tests =====
@@ -97,6 +119,7 @@ class OrderControllerTest {
         webTestClient.post()
             .uri("/api/v1/orders")
             .header(TENANT_HEADER, TEST_TENANT_ID)
+            .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .exchange()
@@ -128,6 +151,7 @@ class OrderControllerTest {
         webTestClient.post()
             .uri("/api/v1/orders")
             .header(TENANT_HEADER, TEST_TENANT_ID)
+            .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .exchange()
@@ -160,6 +184,7 @@ class OrderControllerTest {
         webTestClient.post()
             .uri("/api/v1/orders")
             .header(TENANT_HEADER, TEST_TENANT_ID)
+            .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(invalidRequestJson)
             .exchange()
@@ -191,6 +216,7 @@ class OrderControllerTest {
         webTestClient.post()
             .uri("/api/v1/orders")
             .header(TENANT_HEADER, TEST_TENANT_ID)
+            .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .exchange()
@@ -223,6 +249,7 @@ class OrderControllerTest {
         webTestClient.post()
             .uri("/api/v1/orders")
             .header(TENANT_HEADER, TEST_TENANT_ID)
+            .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(invalidRequestJson)
             .exchange()
@@ -255,6 +282,7 @@ class OrderControllerTest {
         webTestClient.post()
             .uri("/api/v1/orders")
             .header(TENANT_HEADER, TEST_TENANT_ID)
+            .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(invalidRequestJson)
             .exchange()
