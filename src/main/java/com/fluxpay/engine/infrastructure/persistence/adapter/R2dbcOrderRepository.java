@@ -104,13 +104,11 @@ public class R2dbcOrderRepository implements OrderRepository {
 
         UUID uuid = id.value();
         return loadOrderWithLineItems(uuid)
-                .doOnSuccess(order -> {
-                    if (order != null) {
-                        log.debug("Order found: id={}", id);
-                    } else {
-                        log.debug("Order not found: id={}", id);
-                    }
-                });
+                .doOnNext(order -> log.debug("Order found: id={}", id))
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.debug("Order not found: id={}", id);
+                    return Mono.empty();
+                }));
     }
 
     @Override

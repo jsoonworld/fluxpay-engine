@@ -62,6 +62,9 @@ dependencies {
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:r2dbc'
     testImplementation 'org.testcontainers:junit-jupiter'
+
+    // WireMock for PG integration tests
+    testImplementation 'org.wiremock:wiremock-standalone:3.3.1'
 }
 
 tasks.withType(Test) {

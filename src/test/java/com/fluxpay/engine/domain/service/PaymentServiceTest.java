@@ -13,6 +13,7 @@ import com.fluxpay.engine.domain.model.payment.PaymentStatus;
 import com.fluxpay.engine.domain.port.outbound.PaymentRepository;
 import com.fluxpay.engine.domain.port.outbound.PgClient;
 import com.fluxpay.engine.domain.port.outbound.PgClient.PgApprovalResult;
+import com.fluxpay.engine.domain.port.outbound.PgClient.PgConfirmResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -297,7 +298,7 @@ class PaymentServiceTest {
     class ConfirmPaymentTests {
 
         @Test
-        @DisplayName("should confirm payment transitioning from APPROVED to CONFIRMED")
+        @DisplayName("should confirm payment transitioning from APPROVED to CONFIRMED after PG confirm succeeds")
         void shouldConfirmPayment() {
             // Given
             Payment approvedPayment = Payment.create(testOrderId, testAmount);
@@ -306,6 +307,11 @@ class PaymentServiceTest {
 
             when(paymentRepository.findById(approvedPayment.getId()))
                 .thenReturn(Mono.just(approvedPayment));
+            when(pgClient.confirmPayment(
+                eq("payment_key_123"),
+                eq(testOrderId.value().toString()),
+                eq(testAmount)))
+                .thenReturn(Mono.just(new PgConfirmResult("pg_txn_123", true, null)));
             when(paymentRepository.save(any(Payment.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
@@ -317,6 +323,72 @@ class PaymentServiceTest {
                 .assertNext(payment -> {
                     assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CONFIRMED);
                     assertThat(payment.getConfirmedAt()).isNotNull();
+                })
+                .verifyComplete();
+
+            verify(pgClient).confirmPayment(
+                eq("payment_key_123"),
+                eq(testOrderId.value().toString()),
+                eq(testAmount));
+        }
+
+        @Test
+        @DisplayName("should fail payment when PG confirm returns failure")
+        void shouldFailPaymentWhenPgConfirmFails() {
+            // Given
+            Payment approvedPayment = Payment.create(testOrderId, testAmount);
+            approvedPayment.startProcessing(testPaymentMethod);
+            approvedPayment.approve("pg_txn_123", "payment_key_123");
+            String errorMessage = "PG confirmation failed: card expired";
+
+            when(paymentRepository.findById(approvedPayment.getId()))
+                .thenReturn(Mono.just(approvedPayment));
+            when(pgClient.confirmPayment(
+                eq("payment_key_123"),
+                eq(testOrderId.value().toString()),
+                eq(testAmount)))
+                .thenReturn(Mono.just(new PgConfirmResult(null, false, errorMessage)));
+            when(paymentRepository.save(any(Payment.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+
+            // When
+            Mono<Payment> result = paymentService.confirmPayment(approvedPayment.getId());
+
+            // Then
+            StepVerifier.create(result)
+                .assertNext(payment -> {
+                    assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
+                    assertThat(payment.getFailureReason()).isEqualTo(errorMessage);
+                })
+                .verifyComplete();
+        }
+
+        @Test
+        @DisplayName("should fail payment when PG client throws exception")
+        void shouldFailPaymentWhenPgClientThrowsException() {
+            // Given
+            Payment approvedPayment = Payment.create(testOrderId, testAmount);
+            approvedPayment.startProcessing(testPaymentMethod);
+            approvedPayment.approve("pg_txn_123", "payment_key_123");
+
+            when(paymentRepository.findById(approvedPayment.getId()))
+                .thenReturn(Mono.just(approvedPayment));
+            when(pgClient.confirmPayment(
+                eq("payment_key_123"),
+                eq(testOrderId.value().toString()),
+                eq(testAmount)))
+                .thenReturn(Mono.error(new PgClientException("Connection timeout")));
+            when(paymentRepository.save(any(Payment.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+
+            // When
+            Mono<Payment> result = paymentService.confirmPayment(approvedPayment.getId());
+
+            // Then
+            StepVerifier.create(result)
+                .assertNext(payment -> {
+                    assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
+                    assertThat(payment.getFailureReason()).contains("Connection timeout");
                 })
                 .verifyComplete();
         }

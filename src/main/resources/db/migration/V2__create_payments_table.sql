@@ -37,7 +37,6 @@ CREATE TABLE payments (
 );
 
 -- Indexes for common queries
-CREATE INDEX idx_payments_order_id ON payments(order_id);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_payments_pg_payment_key ON payments(pg_payment_key) WHERE pg_payment_key IS NOT NULL;
 CREATE INDEX idx_payments_created_at ON payments(created_at);
