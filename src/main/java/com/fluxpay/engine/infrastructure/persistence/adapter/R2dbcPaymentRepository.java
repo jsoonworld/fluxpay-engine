@@ -1,5 +1,6 @@
 package com.fluxpay.engine.infrastructure.persistence.adapter;
 
+import com.fluxpay.engine.infrastructure.tenant.TenantNotFoundException;
 import com.fluxpay.engine.domain.model.order.OrderId;
 import com.fluxpay.engine.domain.model.payment.Payment;
 import com.fluxpay.engine.domain.model.payment.PaymentId;
@@ -37,7 +38,7 @@ public class R2dbcPaymentRepository implements PaymentRepository {
         log.debug("Saving payment: id={}", payment.getId());
 
         return TenantContext.getTenantIdOrEmpty()
-                .defaultIfEmpty("default")
+                .switchIfEmpty(Mono.error(new TenantNotFoundException("Tenant ID is required for saving payments")))
                 .flatMap(tenantId -> r2dbcRepository.existsById(payment.getId().value())
                         .flatMap(exists -> {
                             PaymentEntity entity = mapper.toEntity(payment, tenantId);

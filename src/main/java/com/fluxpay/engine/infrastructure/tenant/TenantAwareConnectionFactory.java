@@ -56,6 +56,9 @@ public class TenantAwareConnectionFactory implements ConnectionFactory {
                 TenantContext.getTenantIdOrEmpty()
                     .flatMap(tenantId -> setTenantId(connection, tenantId))
                     .switchIfEmpty(Mono.defer(() -> resetTenantId(connection)))
+                    .onErrorResume(ex -> Mono.from(connection.close())
+                        .onErrorResume(closeEx -> Mono.empty())
+                        .then(Mono.error(ex)))
             );
     }
 

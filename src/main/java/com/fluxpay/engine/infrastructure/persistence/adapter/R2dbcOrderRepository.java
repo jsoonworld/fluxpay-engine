@@ -1,5 +1,6 @@
 package com.fluxpay.engine.infrastructure.persistence.adapter;
 
+import com.fluxpay.engine.infrastructure.tenant.TenantNotFoundException;
 import com.fluxpay.engine.domain.model.order.Order;
 import com.fluxpay.engine.domain.model.order.OrderId;
 import com.fluxpay.engine.domain.port.outbound.OrderRepository;
@@ -47,7 +48,7 @@ public class R2dbcOrderRepository implements OrderRepository {
         log.debug("Saving order: id={}", order.getId());
 
         return TenantContext.getTenantIdOrEmpty()
-                .defaultIfEmpty("default")
+                .switchIfEmpty(Mono.error(new TenantNotFoundException("Tenant ID is required for saving orders")))
                 .flatMap(tenantId -> {
                     OrderEntity orderEntity = mapper.toEntity(order, tenantId);
                     List<OrderLineItemEntity> lineItemEntities = mapper.toLineItemEntities(order, tenantId);

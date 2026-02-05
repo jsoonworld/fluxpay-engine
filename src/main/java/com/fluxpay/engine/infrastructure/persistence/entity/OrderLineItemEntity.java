@@ -131,4 +131,12 @@ public class OrderLineItemEntity implements Persistable<UUID> {
     public void setNew(boolean isNew) {
         this.isNew = isNew;
     }
+
+    /**
+     * Marks this entity as existing (not new) for R2DBC persistence.
+     * Call this method when updating an existing record.
+     */
+    public void markAsExisting() {
+        this.isNew = false;
+    }
 }
