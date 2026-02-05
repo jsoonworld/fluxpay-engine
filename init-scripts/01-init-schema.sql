@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS orders (
     metadata JSONB,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    paid_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
 
     CONSTRAINT chk_order_status CHECK (status IN ('PENDING', 'PAID', 'COMPLETED', 'CANCELLED', 'FAILED'))
 );
@@ -27,6 +29,7 @@ CREATE TABLE IF NOT EXISTS order_line_items (
     quantity INT NOT NULL DEFAULT 1,
     unit_price DECIMAL(15, 2) NOT NULL,
     total_price DECIMAL(15, 2) NOT NULL,
+    currency VARCHAR(3) NOT NULL DEFAULT 'KRW',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 
     CONSTRAINT chk_quantity_positive CHECK (quantity > 0),
@@ -37,15 +40,17 @@ CREATE TABLE IF NOT EXISTS order_line_items (
 CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID NOT NULL REFERENCES orders(id),
-    amount DECIMAL(15, 2) NOT NULL,
+    amount DECIMAL(19, 4) NOT NULL,
     currency VARCHAR(3) NOT NULL DEFAULT 'KRW',
     status VARCHAR(20) NOT NULL DEFAULT 'READY',
-    payment_method VARCHAR(30),
+    payment_method_type VARCHAR(30),
+    payment_method_display_name VARCHAR(100),
     pg_transaction_id VARCHAR(100),
     pg_payment_key VARCHAR(100),
     failure_reason VARCHAR(500),
     approved_at TIMESTAMP WITH TIME ZONE,
     confirmed_at TIMESTAMP WITH TIME ZONE,
+    failed_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 
