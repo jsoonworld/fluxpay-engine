@@ -100,6 +100,31 @@ fluxpay:
       key-prefix: idempotency
       timeout: 3s
 
+  saga:
+    enabled: true
+    timeout: 30s                    # Saga total timeout
+    step-timeout: 10s               # Individual step timeout
+    compensation:
+      max-retries: 3                # Compensation retry count
+      retry-delay: 1s               # Retry interval
+    cleanup:
+      enabled: true
+      retention-days: 30            # Completed saga retention period
+      cron: "0 0 2 * * *"           # Daily cleanup at 2 AM
+
+  refund:
+    period-days: 7                  # Refund allowed period after payment
+    max-partial-refunds: 10         # Maximum number of partial refunds per payment
+
+  webhook:
+    outbound:
+      max-retries: 5                # Maximum retry attempts
+      initial-delay: 1s             # Initial delay before first retry
+      max-delay: 16s                # Maximum delay between retries
+      timeout: 10s                  # Request timeout
+    inbound:
+      signature-tolerance: 300      # Signature timestamp tolerance in seconds
+
   tenants:
     configs:
       default:

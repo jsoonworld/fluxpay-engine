@@ -84,3 +84,97 @@ CREATE TABLE IF NOT EXISTS idempotency_keys (
 -- Idempotency Indexes
 CREATE INDEX IF NOT EXISTS idx_idempotency_expires ON idempotency_keys (expires_at);
 CREATE INDEX IF NOT EXISTS idx_idempotency_tenant_id ON idempotency_keys (tenant_id);
+
+-- Saga Instances Table
+CREATE TABLE IF NOT EXISTS saga_instances (
+    id              BIGSERIAL PRIMARY KEY,
+    saga_id         VARCHAR(50) NOT NULL UNIQUE,
+    saga_type       VARCHAR(50) NOT NULL,
+    correlation_id  VARCHAR(100) NOT NULL,
+    tenant_id       VARCHAR(50) NOT NULL DEFAULT '__default__',
+    status          VARCHAR(20) NOT NULL,
+    current_step    INT NOT NULL DEFAULT 0,
+    context_data    TEXT,
+    error_message   TEXT,
+    started_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    completed_at    TIMESTAMP WITH TIME ZONE,
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+    CONSTRAINT uk_saga_correlation UNIQUE (tenant_id, correlation_id)
+);
+
+-- Saga Steps Table
+CREATE TABLE IF NOT EXISTS saga_steps (
+    id              BIGSERIAL PRIMARY KEY,
+    saga_id         VARCHAR(50) NOT NULL REFERENCES saga_instances(saga_id) ON DELETE CASCADE,
+    step_order      INT NOT NULL,
+    step_name       VARCHAR(50) NOT NULL,
+    status          VARCHAR(20) NOT NULL,
+    executed_at     TIMESTAMP WITH TIME ZONE,
+    compensated_at  TIMESTAMP WITH TIME ZONE,
+    error_message   TEXT,
+    step_data       TEXT,
+
+    CONSTRAINT uk_saga_step UNIQUE (saga_id, step_order)
+);
+
+-- Saga Indexes
+CREATE INDEX IF NOT EXISTS idx_saga_status ON saga_instances (status);
+CREATE INDEX IF NOT EXISTS idx_saga_tenant ON saga_instances (tenant_id, started_at);
+CREATE INDEX IF NOT EXISTS idx_saga_correlation ON saga_instances (tenant_id, correlation_id);
+CREATE INDEX IF NOT EXISTS idx_saga_steps_saga ON saga_steps (saga_id);
+
+-- Refunds Table
+CREATE TABLE IF NOT EXISTS refunds (
+    id              BIGSERIAL PRIMARY KEY,
+    refund_id       VARCHAR(50) NOT NULL UNIQUE,
+    tenant_id       VARCHAR(50) NOT NULL DEFAULT '__default__',
+    payment_id      VARCHAR(50) NOT NULL,
+    amount          DECIMAL(15, 2) NOT NULL,
+    currency        VARCHAR(3) NOT NULL,
+    reason          VARCHAR(500),
+    status          VARCHAR(20) NOT NULL,
+    pg_refund_id    VARCHAR(100),
+    requested_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    completed_at    TIMESTAMP WITH TIME ZONE,
+    error_message   TEXT,
+
+    CONSTRAINT ck_refund_status CHECK (status IN ('REQUESTED', 'PROCESSING', 'COMPLETED', 'FAILED')),
+    CONSTRAINT ck_refund_amount CHECK (amount > 0)
+);
+
+-- Refunds Indexes
+CREATE INDEX IF NOT EXISTS idx_refunds_payment ON refunds (payment_id);
+CREATE INDEX IF NOT EXISTS idx_refunds_tenant ON refunds (tenant_id, requested_at);
+CREATE INDEX IF NOT EXISTS idx_refunds_status ON refunds (status);
+
+-- Webhooks Table
+CREATE TABLE IF NOT EXISTS webhooks (
+    id              BIGSERIAL PRIMARY KEY,
+    webhook_id      VARCHAR(50) NOT NULL UNIQUE,
+    tenant_id       VARCHAR(50) NOT NULL DEFAULT '__default__',
+    event_type      VARCHAR(100) NOT NULL,
+    payload         TEXT NOT NULL,
+    target_url      VARCHAR(500) NOT NULL,
+    status          VARCHAR(20) NOT NULL,
+    retry_count     INT NOT NULL DEFAULT 0,
+    last_attempt_at TIMESTAMP WITH TIME ZONE,
+    delivered_at    TIMESTAMP WITH TIME ZONE,
+    error_message   TEXT,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+    CONSTRAINT ck_webhook_status CHECK (status IN ('PENDING', 'DELIVERED', 'FAILED'))
+);
+
+-- Webhooks Indexes
+CREATE INDEX IF NOT EXISTS idx_webhooks_status ON webhooks (status, created_at);
+CREATE INDEX IF NOT EXISTS idx_webhooks_tenant ON webhooks (tenant_id, created_at);
+
+-- Webhook Secrets Table
+CREATE TABLE IF NOT EXISTS webhook_secrets (
+    id          BIGSERIAL PRIMARY KEY,
+    tenant_id   VARCHAR(50) NOT NULL UNIQUE,
+    secret_key  VARCHAR(100) NOT NULL,
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    rotated_at  TIMESTAMP WITH TIME ZONE
+);

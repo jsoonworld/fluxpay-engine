@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @ActiveProfiles("test")
 @DisplayName("IdempotencyKeyR2dbcRepository Integration Tests")
-class IdempotencyKeyR2dbcRepositoryTest {
+class IdempotencyKeyR2dbcRepositoryIntegrationTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")

@@ -15,6 +15,10 @@ public enum ErrorCode {
     UNSUPPORTED_PAYMENT_METHOD("PAY_004", HttpStatus.UNPROCESSABLE_ENTITY, "Unsupported payment method"),
     PG_CONNECTION_ERROR("PAY_005", HttpStatus.BAD_GATEWAY, "Payment gateway connection error"),
     INVALID_PAYMENT_STATE("PAY_006", HttpStatus.BAD_REQUEST, "Invalid payment state transition"),
+    REFUND_AMOUNT_EXCEEDED("PAY_007", HttpStatus.BAD_REQUEST, "Refund amount exceeds remaining refundable amount"),
+    REFUND_PERIOD_EXPIRED("PAY_008", HttpStatus.BAD_REQUEST, "Refund period has expired"),
+    REFUND_NOT_FOUND("PAY_009", HttpStatus.NOT_FOUND, "Refund not found"),
+    INVALID_REFUND_STATE("PAY_010", HttpStatus.BAD_REQUEST, "Invalid refund state transition"),
 
     // Validation Errors (VAL_xxx)
     VALIDATION_FAILED("VAL_001", HttpStatus.BAD_REQUEST, "Request validation failed"),
@@ -22,6 +26,7 @@ public enum ErrorCode {
     IDEMPOTENCY_KEY_INVALID("VAL_003", HttpStatus.BAD_REQUEST, "Invalid idempotency key format (UUID required)"),
     IDEMPOTENCY_CONFLICT("VAL_004", HttpStatus.UNPROCESSABLE_ENTITY, "Different payload used with the same idempotency key"),
     IDEMPOTENCY_PROCESSING("VAL_005", HttpStatus.CONFLICT, "Request with the same idempotency key is being processed. Please retry later"),
+    INVALID_WEBHOOK_SIGNATURE("VAL_006", HttpStatus.UNAUTHORIZED, "Invalid webhook signature"),
 
     // Tenant Errors (TNT_xxx)
     TENANT_HEADER_MISSING("TNT_001", HttpStatus.BAD_REQUEST, "X-Tenant-Id header is required"),

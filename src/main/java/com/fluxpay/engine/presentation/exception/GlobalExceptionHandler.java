@@ -2,9 +2,11 @@ package com.fluxpay.engine.presentation.exception;
 
 import com.fluxpay.engine.domain.exception.InvalidOrderStateException;
 import com.fluxpay.engine.domain.exception.InvalidPaymentStateException;
+import com.fluxpay.engine.domain.exception.InvalidRefundException;
 import com.fluxpay.engine.domain.exception.OrderNotFoundException;
 import com.fluxpay.engine.domain.exception.PaymentNotFoundException;
 import com.fluxpay.engine.domain.exception.PaymentProcessingException;
+import com.fluxpay.engine.domain.exception.RefundNotFoundException;
 import com.fluxpay.engine.infrastructure.idempotency.IdempotencyConflictException;
 import com.fluxpay.engine.infrastructure.idempotency.IdempotencyKeyInvalidException;
 import com.fluxpay.engine.infrastructure.idempotency.IdempotencyKeyMissingException;
@@ -71,6 +73,18 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<ApiResponse<Void>>> handlePaymentProcessingException(PaymentProcessingException ex) {
         log.error("Payment processing error: {}", ex.getMessage(), ex);
         return createErrorResponse(ErrorCode.PG_CONNECTION_ERROR);
+    }
+
+    @ExceptionHandler(InvalidRefundException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleInvalidRefundException(InvalidRefundException ex) {
+        log.warn("Invalid refund: {}", ex.getMessage());
+        return createErrorResponse(ErrorCode.REFUND_AMOUNT_EXCEEDED);
+    }
+
+    @ExceptionHandler(RefundNotFoundException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleRefundNotFoundException(RefundNotFoundException ex) {
+        log.warn("Refund not found: {}", ex.getMessage());
+        return createErrorResponse(ErrorCode.REFUND_NOT_FOUND);
     }
 
     @ExceptionHandler(TenantNotFoundException.class)

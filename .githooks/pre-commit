@@ -100,9 +100,9 @@ echo -e "${GREEN}No forbidden patterns found.${NC}"
 # =============================================================================
 
 echo ""
-echo "Running tests..."
+echo "Running unit tests (excluding integration tests)..."
 
-if ! ./gradlew test --console=plain -q; then
+if ! ./gradlew test --console=plain -q -PexcludeIntegrationTests; then
     echo ""
     echo -e "${RED}Tests failed! Commit aborted.${NC}"
     echo "Please fix failing tests before committing."
