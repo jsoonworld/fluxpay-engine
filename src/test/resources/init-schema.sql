@@ -84,3 +84,42 @@ CREATE TABLE IF NOT EXISTS idempotency_keys (
 -- Idempotency Indexes
 CREATE INDEX IF NOT EXISTS idx_idempotency_expires ON idempotency_keys (expires_at);
 CREATE INDEX IF NOT EXISTS idx_idempotency_tenant_id ON idempotency_keys (tenant_id);
+
+-- Saga Instances Table
+CREATE TABLE IF NOT EXISTS saga_instances (
+    id              BIGSERIAL PRIMARY KEY,
+    saga_id         VARCHAR(50) NOT NULL UNIQUE,
+    saga_type       VARCHAR(50) NOT NULL,
+    correlation_id  VARCHAR(100) NOT NULL,
+    tenant_id       VARCHAR(50) NOT NULL DEFAULT '__default__',
+    status          VARCHAR(20) NOT NULL,
+    current_step    INT NOT NULL DEFAULT 0,
+    context_data    TEXT,
+    error_message   TEXT,
+    started_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    completed_at    TIMESTAMP WITH TIME ZONE,
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+    CONSTRAINT uk_saga_correlation UNIQUE (tenant_id, correlation_id)
+);
+
+-- Saga Steps Table
+CREATE TABLE IF NOT EXISTS saga_steps (
+    id              BIGSERIAL PRIMARY KEY,
+    saga_id         VARCHAR(50) NOT NULL REFERENCES saga_instances(saga_id) ON DELETE CASCADE,
+    step_order      INT NOT NULL,
+    step_name       VARCHAR(50) NOT NULL,
+    status          VARCHAR(20) NOT NULL,
+    executed_at     TIMESTAMP WITH TIME ZONE,
+    compensated_at  TIMESTAMP WITH TIME ZONE,
+    error_message   TEXT,
+    step_data       TEXT,
+
+    CONSTRAINT uk_saga_step UNIQUE (saga_id, step_order)
+);
+
+-- Saga Indexes
+CREATE INDEX IF NOT EXISTS idx_saga_status ON saga_instances (status);
+CREATE INDEX IF NOT EXISTS idx_saga_tenant ON saga_instances (tenant_id, started_at);
+CREATE INDEX IF NOT EXISTS idx_saga_correlation ON saga_instances (tenant_id, correlation_id);
+CREATE INDEX IF NOT EXISTS idx_saga_steps_saga ON saga_steps (saga_id);

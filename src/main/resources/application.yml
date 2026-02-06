@@ -100,6 +100,18 @@ fluxpay:
       key-prefix: idempotency
       timeout: 3s
 
+  saga:
+    enabled: true
+    timeout: 30s                    # Saga total timeout
+    step-timeout: 10s               # Individual step timeout
+    compensation:
+      max-retries: 3                # Compensation retry count
+      retry-delay: 1s               # Retry interval
+    cleanup:
+      enabled: true
+      retention-days: 30            # Completed saga retention period
+      cron: "0 0 2 * * *"           # Daily cleanup at 2 AM
+
   tenants:
     configs:
       default:
