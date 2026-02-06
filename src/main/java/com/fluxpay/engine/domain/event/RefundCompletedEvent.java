@@ -36,6 +36,11 @@ public record RefundCompletedEvent(
      * @param refund the completed refund domain object
      * @return a new RefundCompletedEvent
      */
+    @Override
+    public String eventType() {
+        return "refund.completed";
+    }
+
     public static RefundCompletedEvent from(Refund refund) {
         Objects.requireNonNull(refund, "refund is required");
         return new RefundCompletedEvent(

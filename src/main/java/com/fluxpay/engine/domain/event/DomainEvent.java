@@ -11,4 +11,10 @@ public interface DomainEvent {
     String eventId();
 
     Instant occurredAt();
+
+    String aggregateType();
+
+    String aggregateId();
+
+    String eventType();
 }
