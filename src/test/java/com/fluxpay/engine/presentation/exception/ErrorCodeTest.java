@@ -26,7 +26,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("ORD_001");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.NOT_FOUND);
-            assertThat(errorCode.getMessage()).isEqualTo("주문을 찾을 수 없습니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Order not found");
         }
 
         @Test
@@ -36,7 +36,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("ORD_002");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.CONFLICT);
-            assertThat(errorCode.getMessage()).isEqualTo("이미 처리된 주문입니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Order has already been processed");
         }
 
         @Test
@@ -46,7 +46,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("ORD_003");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-            assertThat(errorCode.getMessage()).isEqualTo("잘못된 주문 상태 전이입니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Invalid order state transition");
         }
     }
 
@@ -61,7 +61,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("PAY_001");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.NOT_FOUND);
-            assertThat(errorCode.getMessage()).isEqualTo("결제를 찾을 수 없습니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Payment not found");
         }
 
         @Test
@@ -71,7 +71,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("PAY_002");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-            assertThat(errorCode.getMessage()).isEqualTo("잘못된 결제 금액입니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Invalid payment amount");
         }
 
         @Test
@@ -81,7 +81,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("PAY_003");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.CONFLICT);
-            assertThat(errorCode.getMessage()).isEqualTo("이미 처리된 결제입니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Payment has already been processed");
         }
 
         @Test
@@ -91,7 +91,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("PAY_004");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-            assertThat(errorCode.getMessage()).isEqualTo("지원하지 않는 결제 수단입니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Unsupported payment method");
         }
 
         @Test
@@ -101,7 +101,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("PAY_005");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_GATEWAY);
-            assertThat(errorCode.getMessage()).isEqualTo("PG 연동 오류가 발생했습니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Payment gateway connection error");
         }
 
         @Test
@@ -111,7 +111,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("PAY_006");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-            assertThat(errorCode.getMessage()).isEqualTo("잘못된 결제 상태 전이입니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Invalid payment state transition");
         }
     }
 
@@ -126,7 +126,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("VAL_001");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-            assertThat(errorCode.getMessage()).isEqualTo("요청 검증에 실패했습니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Request validation failed");
         }
 
         @Test
@@ -136,7 +136,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("VAL_002");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-            assertThat(errorCode.getMessage()).isEqualTo("X-Idempotency-Key 헤더가 필요합니다");
+            assertThat(errorCode.getMessage()).isEqualTo("X-Idempotency-Key header is required");
         }
 
         @Test
@@ -146,7 +146,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("VAL_003");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-            assertThat(errorCode.getMessage()).isEqualTo("유효하지 않은 멱등 키 형식입니다 (UUID 필요)");
+            assertThat(errorCode.getMessage()).isEqualTo("Invalid idempotency key format (UUID required)");
         }
 
         @Test
@@ -156,7 +156,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("VAL_004");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-            assertThat(errorCode.getMessage()).isEqualTo("동일한 멱등 키에 다른 페이로드가 사용되었습니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Different payload used with the same idempotency key");
         }
 
         @Test
@@ -166,7 +166,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("VAL_005");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.CONFLICT);
-            assertThat(errorCode.getMessage()).isEqualTo("동일한 멱등 키로 요청이 처리 중입니다. 잠시 후 다시 시도해주세요");
+            assertThat(errorCode.getMessage()).isEqualTo("Request with the same idempotency key is being processed. Please retry later");
         }
     }
 
@@ -181,7 +181,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("TNT_001");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-            assertThat(errorCode.getMessage()).isEqualTo("X-Tenant-Id 헤더가 필요합니다");
+            assertThat(errorCode.getMessage()).isEqualTo("X-Tenant-Id header is required");
         }
 
         @Test
@@ -191,7 +191,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("TNT_002");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.NOT_FOUND);
-            assertThat(errorCode.getMessage()).isEqualTo("알 수 없는 테넌트입니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Unknown tenant");
         }
     }
 
@@ -206,7 +206,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("SYS_001");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-            assertThat(errorCode.getMessage()).isEqualTo("내부 서버 오류가 발생했습니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Internal server error");
         }
 
         @Test
@@ -216,7 +216,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("SYS_002");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
-            assertThat(errorCode.getMessage()).isEqualTo("서비스를 일시적으로 사용할 수 없습니다");
+            assertThat(errorCode.getMessage()).isEqualTo("Service temporarily unavailable");
         }
 
         @Test
@@ -226,7 +226,7 @@ class ErrorCodeTest {
 
             assertThat(errorCode.getCode()).isEqualTo("SYS_003");
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
-            assertThat(errorCode.getMessage()).isEqualTo("외부 서비스 응답 시간 초과");
+            assertThat(errorCode.getMessage()).isEqualTo("External service response timeout");
         }
     }
 
@@ -257,25 +257,25 @@ class ErrorCodeTest {
 
         static Stream<Arguments> errorCodeProvider() {
             return Stream.of(
-                Arguments.of(ErrorCode.ORDER_NOT_FOUND, "ORD_001", HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다"),
-                Arguments.of(ErrorCode.ORDER_ALREADY_PROCESSED, "ORD_002", HttpStatus.CONFLICT, "이미 처리된 주문입니다"),
-                Arguments.of(ErrorCode.INVALID_ORDER_STATE, "ORD_003", HttpStatus.BAD_REQUEST, "잘못된 주문 상태 전이입니다"),
-                Arguments.of(ErrorCode.PAYMENT_NOT_FOUND, "PAY_001", HttpStatus.NOT_FOUND, "결제를 찾을 수 없습니다"),
-                Arguments.of(ErrorCode.INVALID_PAYMENT_AMOUNT, "PAY_002", HttpStatus.BAD_REQUEST, "잘못된 결제 금액입니다"),
-                Arguments.of(ErrorCode.PAYMENT_ALREADY_PROCESSED, "PAY_003", HttpStatus.CONFLICT, "이미 처리된 결제입니다"),
-                Arguments.of(ErrorCode.UNSUPPORTED_PAYMENT_METHOD, "PAY_004", HttpStatus.UNPROCESSABLE_ENTITY, "지원하지 않는 결제 수단입니다"),
-                Arguments.of(ErrorCode.PG_CONNECTION_ERROR, "PAY_005", HttpStatus.BAD_GATEWAY, "PG 연동 오류가 발생했습니다"),
-                Arguments.of(ErrorCode.INVALID_PAYMENT_STATE, "PAY_006", HttpStatus.BAD_REQUEST, "잘못된 결제 상태 전이입니다"),
-                Arguments.of(ErrorCode.VALIDATION_FAILED, "VAL_001", HttpStatus.BAD_REQUEST, "요청 검증에 실패했습니다"),
-                Arguments.of(ErrorCode.IDEMPOTENCY_KEY_MISSING, "VAL_002", HttpStatus.BAD_REQUEST, "X-Idempotency-Key 헤더가 필요합니다"),
-                Arguments.of(ErrorCode.IDEMPOTENCY_KEY_INVALID, "VAL_003", HttpStatus.BAD_REQUEST, "유효하지 않은 멱등 키 형식입니다 (UUID 필요)"),
-                Arguments.of(ErrorCode.IDEMPOTENCY_CONFLICT, "VAL_004", HttpStatus.UNPROCESSABLE_ENTITY, "동일한 멱등 키에 다른 페이로드가 사용되었습니다"),
-                Arguments.of(ErrorCode.IDEMPOTENCY_PROCESSING, "VAL_005", HttpStatus.CONFLICT, "동일한 멱등 키로 요청이 처리 중입니다. 잠시 후 다시 시도해주세요"),
-                Arguments.of(ErrorCode.TENANT_HEADER_MISSING, "TNT_001", HttpStatus.BAD_REQUEST, "X-Tenant-Id 헤더가 필요합니다"),
-                Arguments.of(ErrorCode.TENANT_NOT_FOUND, "TNT_002", HttpStatus.NOT_FOUND, "알 수 없는 테넌트입니다"),
-                Arguments.of(ErrorCode.INTERNAL_SERVER_ERROR, "SYS_001", HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버 오류가 발생했습니다"),
-                Arguments.of(ErrorCode.SERVICE_UNAVAILABLE, "SYS_002", HttpStatus.SERVICE_UNAVAILABLE, "서비스를 일시적으로 사용할 수 없습니다"),
-                Arguments.of(ErrorCode.GATEWAY_TIMEOUT, "SYS_003", HttpStatus.GATEWAY_TIMEOUT, "외부 서비스 응답 시간 초과")
+                Arguments.of(ErrorCode.ORDER_NOT_FOUND, "ORD_001", HttpStatus.NOT_FOUND, "Order not found"),
+                Arguments.of(ErrorCode.ORDER_ALREADY_PROCESSED, "ORD_002", HttpStatus.CONFLICT, "Order has already been processed"),
+                Arguments.of(ErrorCode.INVALID_ORDER_STATE, "ORD_003", HttpStatus.BAD_REQUEST, "Invalid order state transition"),
+                Arguments.of(ErrorCode.PAYMENT_NOT_FOUND, "PAY_001", HttpStatus.NOT_FOUND, "Payment not found"),
+                Arguments.of(ErrorCode.INVALID_PAYMENT_AMOUNT, "PAY_002", HttpStatus.BAD_REQUEST, "Invalid payment amount"),
+                Arguments.of(ErrorCode.PAYMENT_ALREADY_PROCESSED, "PAY_003", HttpStatus.CONFLICT, "Payment has already been processed"),
+                Arguments.of(ErrorCode.UNSUPPORTED_PAYMENT_METHOD, "PAY_004", HttpStatus.UNPROCESSABLE_ENTITY, "Unsupported payment method"),
+                Arguments.of(ErrorCode.PG_CONNECTION_ERROR, "PAY_005", HttpStatus.BAD_GATEWAY, "Payment gateway connection error"),
+                Arguments.of(ErrorCode.INVALID_PAYMENT_STATE, "PAY_006", HttpStatus.BAD_REQUEST, "Invalid payment state transition"),
+                Arguments.of(ErrorCode.VALIDATION_FAILED, "VAL_001", HttpStatus.BAD_REQUEST, "Request validation failed"),
+                Arguments.of(ErrorCode.IDEMPOTENCY_KEY_MISSING, "VAL_002", HttpStatus.BAD_REQUEST, "X-Idempotency-Key header is required"),
+                Arguments.of(ErrorCode.IDEMPOTENCY_KEY_INVALID, "VAL_003", HttpStatus.BAD_REQUEST, "Invalid idempotency key format (UUID required)"),
+                Arguments.of(ErrorCode.IDEMPOTENCY_CONFLICT, "VAL_004", HttpStatus.UNPROCESSABLE_ENTITY, "Different payload used with the same idempotency key"),
+                Arguments.of(ErrorCode.IDEMPOTENCY_PROCESSING, "VAL_005", HttpStatus.CONFLICT, "Request with the same idempotency key is being processed. Please retry later"),
+                Arguments.of(ErrorCode.TENANT_HEADER_MISSING, "TNT_001", HttpStatus.BAD_REQUEST, "X-Tenant-Id header is required"),
+                Arguments.of(ErrorCode.TENANT_NOT_FOUND, "TNT_002", HttpStatus.NOT_FOUND, "Unknown tenant"),
+                Arguments.of(ErrorCode.INTERNAL_SERVER_ERROR, "SYS_001", HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
+                Arguments.of(ErrorCode.SERVICE_UNAVAILABLE, "SYS_002", HttpStatus.SERVICE_UNAVAILABLE, "Service temporarily unavailable"),
+                Arguments.of(ErrorCode.GATEWAY_TIMEOUT, "SYS_003", HttpStatus.GATEWAY_TIMEOUT, "External service response timeout")
             );
         }
     }

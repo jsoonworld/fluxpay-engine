@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS orders (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
     paid_at TIMESTAMP WITH TIME ZONE,
     completed_at TIMESTAMP WITH TIME ZONE,
-    tenant_id VARCHAR(50) NOT NULL DEFAULT 'default'
+    tenant_id VARCHAR(50) NOT NULL DEFAULT '__default__'
 );
 
 -- Order Line Items Table
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS order_line_items (
     unit_price DECIMAL(19, 4) NOT NULL,
     total_price DECIMAL(19, 4) NOT NULL,
     currency VARCHAR(3) NOT NULL,
-    tenant_id VARCHAR(50) NOT NULL DEFAULT 'default'
+    tenant_id VARCHAR(50) NOT NULL DEFAULT '__default__'
 );
 
 -- Indexes

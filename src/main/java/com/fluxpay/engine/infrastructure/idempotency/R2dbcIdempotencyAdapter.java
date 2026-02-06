@@ -1,5 +1,7 @@
 package com.fluxpay.engine.infrastructure.idempotency;
 
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyKey;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyResult;
 import com.fluxpay.engine.domain.port.outbound.IdempotencyPort;
 import com.fluxpay.engine.infrastructure.persistence.entity.IdempotencyKeyEntity;
 import com.fluxpay.engine.infrastructure.persistence.repository.IdempotencyKeyR2dbcRepository;
@@ -87,8 +89,17 @@ public class R2dbcIdempotencyAdapter implements IdempotencyPort {
                 return IdempotencyResult.miss();
             })
             .onErrorResume(DuplicateKeyException.class, ex -> {
-                log.debug("Lock acquisition failed (duplicate), checking existing record for key {}", key.toCompositeKey());
-                return check(key, payloadHash);
+                log.debug("Lock acquisition failed (duplicate), checking/cleaning expired for key {}", key.toCompositeKey());
+                // First try to delete if expired, then retry insert or check existing
+                return repository.deleteByTenantIdAndEndpointAndIdempotencyKeyAndExpiresAtBefore(
+                        key.tenantId(), key.endpoint(), key.idempotencyKey(), now)
+                    .filter(deleted -> deleted > 0)
+                    .flatMap(deleted -> {
+                        // Record was expired and deleted, retry insert
+                        log.debug("Expired record deleted for key {}, retrying insert", key.toCompositeKey());
+                        return repository.save(entity).map(saved -> IdempotencyResult.miss());
+                    })
+                    .switchIfEmpty(Mono.defer(() -> check(key, payloadHash)));
             });
     }
 

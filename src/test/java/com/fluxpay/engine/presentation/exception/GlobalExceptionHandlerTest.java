@@ -75,7 +75,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("VAL_001");
-            assertThat(body.error().message()).isEqualTo("요청 검증에 실패했습니다");
+            assertThat(body.error().message()).isEqualTo("Request validation failed");
             assertThat(body.error().fieldErrors()).hasSize(2);
             assertThat(body.error().fieldErrors())
                 .extracting(FieldError::field)
@@ -127,7 +127,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("SYS_001");
-            assertThat(body.error().message()).isEqualTo("내부 서버 오류가 발생했습니다");
+            assertThat(body.error().message()).isEqualTo("Internal server error");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -172,7 +172,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("ORD_001");
-            assertThat(body.error().message()).isEqualTo("주문을 찾을 수 없습니다");
+            assertThat(body.error().message()).isEqualTo("Order not found");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -218,7 +218,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("PAY_001");
-            assertThat(body.error().message()).isEqualTo("결제를 찾을 수 없습니다");
+            assertThat(body.error().message()).isEqualTo("Payment not found");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -263,7 +263,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("ORD_003");
-            assertThat(body.error().message()).isEqualTo("잘못된 주문 상태 전이입니다");
+            assertThat(body.error().message()).isEqualTo("Invalid order state transition");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -308,7 +308,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("PAY_006");
-            assertThat(body.error().message()).isEqualTo("잘못된 결제 상태 전이입니다");
+            assertThat(body.error().message()).isEqualTo("Invalid payment state transition");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -352,7 +352,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("PAY_005");
-            assertThat(body.error().message()).isEqualTo("PG 연동 오류가 발생했습니다");
+            assertThat(body.error().message()).isEqualTo("Payment gateway connection error");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -397,7 +397,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("VAL_001");
-            assertThat(body.error().message()).isEqualTo("요청 검증에 실패했습니다");
+            assertThat(body.error().message()).isEqualTo("Request validation failed");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -426,7 +426,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("TNT_001");
-            assertThat(body.error().message()).isEqualTo("X-Tenant-Id 헤더가 필요합니다");
+            assertThat(body.error().message()).isEqualTo("X-Tenant-Id header is required");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -455,7 +455,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("VAL_002");
-            assertThat(body.error().message()).isEqualTo("X-Idempotency-Key 헤더가 필요합니다");
+            assertThat(body.error().message()).isEqualTo("X-Idempotency-Key header is required");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -484,7 +484,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("VAL_003");
-            assertThat(body.error().message()).isEqualTo("유효하지 않은 멱등 키 형식입니다 (UUID 필요)");
+            assertThat(body.error().message()).isEqualTo("Invalid idempotency key format (UUID required)");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -513,7 +513,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("VAL_004");
-            assertThat(body.error().message()).isEqualTo("동일한 멱등 키에 다른 페이로드가 사용되었습니다");
+            assertThat(body.error().message()).isEqualTo("Different payload used with the same idempotency key");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }
@@ -542,7 +542,7 @@ class GlobalExceptionHandlerTest {
             assertThat(body.data()).isNull();
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("VAL_005");
-            assertThat(body.error().message()).isEqualTo("동일한 멱등 키로 요청이 처리 중입니다. 잠시 후 다시 시도해주세요");
+            assertThat(body.error().message()).isEqualTo("Request with the same idempotency key is being processed. Please retry later");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }

@@ -1,7 +1,7 @@
 package com.fluxpay.engine.domain.port.outbound;
 
-import com.fluxpay.engine.infrastructure.idempotency.IdempotencyKey;
-import com.fluxpay.engine.infrastructure.idempotency.IdempotencyResult;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyKey;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyResult;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
