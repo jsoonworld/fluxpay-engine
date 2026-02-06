@@ -5,6 +5,11 @@ import com.fluxpay.engine.domain.exception.InvalidPaymentStateException;
 import com.fluxpay.engine.domain.exception.OrderNotFoundException;
 import com.fluxpay.engine.domain.exception.PaymentNotFoundException;
 import com.fluxpay.engine.domain.exception.PaymentProcessingException;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyConflictException;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyKeyInvalidException;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyKeyMissingException;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyProcessingException;
+import com.fluxpay.engine.infrastructure.tenant.TenantNotFoundException;
 import com.fluxpay.engine.domain.model.order.OrderId;
 import com.fluxpay.engine.domain.model.order.OrderStatus;
 import com.fluxpay.engine.domain.model.payment.PaymentId;
@@ -393,6 +398,151 @@ class GlobalExceptionHandlerTest {
             assertThat(body.error()).isNotNull();
             assertThat(body.error().code()).isEqualTo("VAL_001");
             assertThat(body.error().message()).isEqualTo("요청 검증에 실패했습니다");
+            assertThat(body.error().fieldErrors()).isEmpty();
+            assertThat(body.metadata()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("handleTenantNotFoundException")
+    class HandleTenantNotFoundException {
+
+        @Test
+        @DisplayName("should return BAD_REQUEST with TNT_001 error code")
+        void shouldHandleTenantNotFoundException() {
+            // Given
+            TenantNotFoundException exception = new TenantNotFoundException("X-Tenant-Id header is required");
+
+            // When
+            ResponseEntity<ApiResponse<Void>> response = handler.handleTenantNotFoundException(exception).block();
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
+            ApiResponse<Void> body = response.getBody();
+            assertThat(body).isNotNull();
+            assertThat(body.success()).isFalse();
+            assertThat(body.data()).isNull();
+            assertThat(body.error()).isNotNull();
+            assertThat(body.error().code()).isEqualTo("TNT_001");
+            assertThat(body.error().message()).isEqualTo("X-Tenant-Id 헤더가 필요합니다");
+            assertThat(body.error().fieldErrors()).isEmpty();
+            assertThat(body.metadata()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("handleIdempotencyKeyMissingException")
+    class HandleIdempotencyKeyMissingException {
+
+        @Test
+        @DisplayName("should return BAD_REQUEST with VAL_002 error code")
+        void shouldHandleIdempotencyKeyMissing() {
+            // Given
+            IdempotencyKeyMissingException exception = new IdempotencyKeyMissingException();
+
+            // When
+            ResponseEntity<ApiResponse<Void>> response = handler.handleIdempotencyKeyMissing(exception).block();
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
+            ApiResponse<Void> body = response.getBody();
+            assertThat(body).isNotNull();
+            assertThat(body.success()).isFalse();
+            assertThat(body.data()).isNull();
+            assertThat(body.error()).isNotNull();
+            assertThat(body.error().code()).isEqualTo("VAL_002");
+            assertThat(body.error().message()).isEqualTo("X-Idempotency-Key 헤더가 필요합니다");
+            assertThat(body.error().fieldErrors()).isEmpty();
+            assertThat(body.metadata()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("handleIdempotencyKeyInvalidException")
+    class HandleIdempotencyKeyInvalidException {
+
+        @Test
+        @DisplayName("should return BAD_REQUEST with VAL_003 error code")
+        void shouldHandleIdempotencyKeyInvalid() {
+            // Given
+            IdempotencyKeyInvalidException exception = new IdempotencyKeyInvalidException("not-a-uuid");
+
+            // When
+            ResponseEntity<ApiResponse<Void>> response = handler.handleIdempotencyKeyInvalid(exception).block();
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
+            ApiResponse<Void> body = response.getBody();
+            assertThat(body).isNotNull();
+            assertThat(body.success()).isFalse();
+            assertThat(body.data()).isNull();
+            assertThat(body.error()).isNotNull();
+            assertThat(body.error().code()).isEqualTo("VAL_003");
+            assertThat(body.error().message()).isEqualTo("유효하지 않은 멱등 키 형식입니다 (UUID 필요)");
+            assertThat(body.error().fieldErrors()).isEmpty();
+            assertThat(body.metadata()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("handleIdempotencyConflictException")
+    class HandleIdempotencyConflictException {
+
+        @Test
+        @DisplayName("should return UNPROCESSABLE_ENTITY with VAL_004 error code")
+        void shouldHandleIdempotencyConflict() {
+            // Given
+            IdempotencyConflictException exception = new IdempotencyConflictException("550e8400-e29b-41d4-a716-446655440000");
+
+            // When
+            ResponseEntity<ApiResponse<Void>> response = handler.handleIdempotencyConflict(exception).block();
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+
+            ApiResponse<Void> body = response.getBody();
+            assertThat(body).isNotNull();
+            assertThat(body.success()).isFalse();
+            assertThat(body.data()).isNull();
+            assertThat(body.error()).isNotNull();
+            assertThat(body.error().code()).isEqualTo("VAL_004");
+            assertThat(body.error().message()).isEqualTo("동일한 멱등 키에 다른 페이로드가 사용되었습니다");
+            assertThat(body.error().fieldErrors()).isEmpty();
+            assertThat(body.metadata()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("handleIdempotencyProcessingException")
+    class HandleIdempotencyProcessingException {
+
+        @Test
+        @DisplayName("should return CONFLICT with VAL_005 error code")
+        void shouldHandleIdempotencyProcessing() {
+            // Given
+            IdempotencyProcessingException exception = new IdempotencyProcessingException("550e8400-e29b-41d4-a716-446655440000");
+
+            // When
+            ResponseEntity<ApiResponse<Void>> response = handler.handleIdempotencyProcessing(exception).block();
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+
+            ApiResponse<Void> body = response.getBody();
+            assertThat(body).isNotNull();
+            assertThat(body.success()).isFalse();
+            assertThat(body.data()).isNull();
+            assertThat(body.error()).isNotNull();
+            assertThat(body.error().code()).isEqualTo("VAL_005");
+            assertThat(body.error().message()).isEqualTo("동일한 멱등 키로 요청이 처리 중입니다. 잠시 후 다시 시도해주세요");
             assertThat(body.error().fieldErrors()).isEmpty();
             assertThat(body.metadata()).isNotNull();
         }

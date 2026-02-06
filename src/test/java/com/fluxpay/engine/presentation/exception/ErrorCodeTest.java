@@ -128,6 +128,71 @@ class ErrorCodeTest {
             assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(errorCode.getMessage()).isEqualTo("요청 검증에 실패했습니다");
         }
+
+        @Test
+        @DisplayName("IDEMPOTENCY_KEY_MISSING should have correct code, status, and message")
+        void idempotencyKeyMissingShouldHaveCorrectValues() {
+            ErrorCode errorCode = ErrorCode.IDEMPOTENCY_KEY_MISSING;
+
+            assertThat(errorCode.getCode()).isEqualTo("VAL_002");
+            assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(errorCode.getMessage()).isEqualTo("X-Idempotency-Key 헤더가 필요합니다");
+        }
+
+        @Test
+        @DisplayName("IDEMPOTENCY_KEY_INVALID should have correct code, status, and message")
+        void idempotencyKeyInvalidShouldHaveCorrectValues() {
+            ErrorCode errorCode = ErrorCode.IDEMPOTENCY_KEY_INVALID;
+
+            assertThat(errorCode.getCode()).isEqualTo("VAL_003");
+            assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(errorCode.getMessage()).isEqualTo("유효하지 않은 멱등 키 형식입니다 (UUID 필요)");
+        }
+
+        @Test
+        @DisplayName("IDEMPOTENCY_CONFLICT should have correct code, status, and message")
+        void idempotencyConflictShouldHaveCorrectValues() {
+            ErrorCode errorCode = ErrorCode.IDEMPOTENCY_CONFLICT;
+
+            assertThat(errorCode.getCode()).isEqualTo("VAL_004");
+            assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+            assertThat(errorCode.getMessage()).isEqualTo("동일한 멱등 키에 다른 페이로드가 사용되었습니다");
+        }
+
+        @Test
+        @DisplayName("IDEMPOTENCY_PROCESSING should have correct code, status, and message")
+        void idempotencyProcessingShouldHaveCorrectValues() {
+            ErrorCode errorCode = ErrorCode.IDEMPOTENCY_PROCESSING;
+
+            assertThat(errorCode.getCode()).isEqualTo("VAL_005");
+            assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.CONFLICT);
+            assertThat(errorCode.getMessage()).isEqualTo("동일한 멱등 키로 요청이 처리 중입니다. 잠시 후 다시 시도해주세요");
+        }
+    }
+
+    @Nested
+    @DisplayName("Tenant Errors (TNT_xxx)")
+    class TenantErrors {
+
+        @Test
+        @DisplayName("TENANT_HEADER_MISSING should have correct code, status, and message")
+        void shouldHaveTenantHeaderMissingErrorCode() {
+            ErrorCode errorCode = ErrorCode.TENANT_HEADER_MISSING;
+
+            assertThat(errorCode.getCode()).isEqualTo("TNT_001");
+            assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(errorCode.getMessage()).isEqualTo("X-Tenant-Id 헤더가 필요합니다");
+        }
+
+        @Test
+        @DisplayName("TENANT_NOT_FOUND should have correct code, status, and message")
+        void shouldHaveTenantNotFoundErrorCode() {
+            ErrorCode errorCode = ErrorCode.TENANT_NOT_FOUND;
+
+            assertThat(errorCode.getCode()).isEqualTo("TNT_002");
+            assertThat(errorCode.getHttpStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+            assertThat(errorCode.getMessage()).isEqualTo("알 수 없는 테넌트입니다");
+        }
     }
 
     @Nested
@@ -202,6 +267,12 @@ class ErrorCodeTest {
                 Arguments.of(ErrorCode.PG_CONNECTION_ERROR, "PAY_005", HttpStatus.BAD_GATEWAY, "PG 연동 오류가 발생했습니다"),
                 Arguments.of(ErrorCode.INVALID_PAYMENT_STATE, "PAY_006", HttpStatus.BAD_REQUEST, "잘못된 결제 상태 전이입니다"),
                 Arguments.of(ErrorCode.VALIDATION_FAILED, "VAL_001", HttpStatus.BAD_REQUEST, "요청 검증에 실패했습니다"),
+                Arguments.of(ErrorCode.IDEMPOTENCY_KEY_MISSING, "VAL_002", HttpStatus.BAD_REQUEST, "X-Idempotency-Key 헤더가 필요합니다"),
+                Arguments.of(ErrorCode.IDEMPOTENCY_KEY_INVALID, "VAL_003", HttpStatus.BAD_REQUEST, "유효하지 않은 멱등 키 형식입니다 (UUID 필요)"),
+                Arguments.of(ErrorCode.IDEMPOTENCY_CONFLICT, "VAL_004", HttpStatus.UNPROCESSABLE_ENTITY, "동일한 멱등 키에 다른 페이로드가 사용되었습니다"),
+                Arguments.of(ErrorCode.IDEMPOTENCY_PROCESSING, "VAL_005", HttpStatus.CONFLICT, "동일한 멱등 키로 요청이 처리 중입니다. 잠시 후 다시 시도해주세요"),
+                Arguments.of(ErrorCode.TENANT_HEADER_MISSING, "TNT_001", HttpStatus.BAD_REQUEST, "X-Tenant-Id 헤더가 필요합니다"),
+                Arguments.of(ErrorCode.TENANT_NOT_FOUND, "TNT_002", HttpStatus.NOT_FOUND, "알 수 없는 테넌트입니다"),
                 Arguments.of(ErrorCode.INTERNAL_SERVER_ERROR, "SYS_001", HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버 오류가 발생했습니다"),
                 Arguments.of(ErrorCode.SERVICE_UNAVAILABLE, "SYS_002", HttpStatus.SERVICE_UNAVAILABLE, "서비스를 일시적으로 사용할 수 없습니다"),
                 Arguments.of(ErrorCode.GATEWAY_TIMEOUT, "SYS_003", HttpStatus.GATEWAY_TIMEOUT, "외부 서비스 응답 시간 초과")
@@ -214,9 +285,9 @@ class ErrorCodeTest {
     class AllEnumValues {
 
         @Test
-        @DisplayName("should have exactly 13 error codes defined")
-        void shouldHaveExactly13ErrorCodes() {
-            assertThat(ErrorCode.values()).hasSize(13);
+        @DisplayName("should have exactly 19 error codes defined")
+        void shouldHaveExactly19ErrorCodes() {
+            assertThat(ErrorCode.values()).hasSize(19);
         }
 
         @Test

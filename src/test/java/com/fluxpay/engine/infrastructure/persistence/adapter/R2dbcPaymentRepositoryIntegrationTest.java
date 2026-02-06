@@ -11,6 +11,7 @@ import com.fluxpay.engine.domain.model.payment.PaymentMethod;
 import com.fluxpay.engine.domain.model.payment.PaymentStatus;
 import com.fluxpay.engine.domain.port.outbound.OrderRepository;
 import com.fluxpay.engine.domain.port.outbound.PaymentRepository;
+import com.fluxpay.engine.infrastructure.tenant.TenantContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -40,6 +41,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 @DisplayName("R2dbcPaymentRepository Integration Tests")
 class R2dbcPaymentRepositoryIntegrationTest {
+
+    private static final String TEST_TENANT_ID = "test-tenant";
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
@@ -95,7 +98,7 @@ class R2dbcPaymentRepositoryIntegrationTest {
                 null
         );
 
-        return orderRepository.save(order).block();
+        return orderRepository.save(order).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
     }
 
     private Payment createTestPayment(OrderId orderId, Money amount) {
@@ -114,7 +117,8 @@ class R2dbcPaymentRepositoryIntegrationTest {
             Payment payment = createTestPayment(order.getId(), Money.krw(10000));
 
             // When
-            var result = paymentRepository.save(payment);
+            var result = paymentRepository.save(payment)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID));
 
             // Then
             StepVerifier.create(result)
@@ -136,14 +140,15 @@ class R2dbcPaymentRepositoryIntegrationTest {
             // Given
             Order order = createAndSaveOrder("user-update-test");
             Payment payment = createTestPayment(order.getId(), Money.krw(20000));
-            Payment savedPayment = paymentRepository.save(payment).block();
+            Payment savedPayment = paymentRepository.save(payment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedPayment).isNotNull();
 
             // Start processing with a payment method
             savedPayment.startProcessing(PaymentMethod.card("Visa ending 1234"));
 
             // When
-            var result = paymentRepository.save(savedPayment);
+            var result = paymentRepository.save(savedPayment)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID));
 
             // Then
             StepVerifier.create(result)
@@ -162,20 +167,20 @@ class R2dbcPaymentRepositoryIntegrationTest {
             // Given
             Order order = createAndSaveOrder("user-full-lifecycle");
             Payment payment = createTestPayment(order.getId(), Money.krw(50000));
-            Payment savedPayment = paymentRepository.save(payment).block();
+            Payment savedPayment = paymentRepository.save(payment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedPayment).isNotNull();
 
             // Progress through payment lifecycle
             savedPayment.startProcessing(PaymentMethod.bankTransfer("KB Bank"));
-            savedPayment = paymentRepository.save(savedPayment).block();
+            savedPayment = paymentRepository.save(savedPayment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedPayment).isNotNull();
 
             savedPayment.approve("txn-123456", "pk-789");
-            savedPayment = paymentRepository.save(savedPayment).block();
+            savedPayment = paymentRepository.save(savedPayment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedPayment).isNotNull();
 
             savedPayment.confirm();
-            savedPayment = paymentRepository.save(savedPayment).block();
+            savedPayment = paymentRepository.save(savedPayment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedPayment).isNotNull();
 
             // When - retrieve from database
@@ -204,7 +209,7 @@ class R2dbcPaymentRepositoryIntegrationTest {
             // Given
             Order order = createAndSaveOrder("user-findbyid");
             Payment payment = createTestPayment(order.getId(), Money.krw(15000));
-            Payment savedPayment = paymentRepository.save(payment).block();
+            Payment savedPayment = paymentRepository.save(payment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedPayment).isNotNull();
 
             // When
@@ -247,7 +252,7 @@ class R2dbcPaymentRepositoryIntegrationTest {
             // Given
             Order order = createAndSaveOrder("user-findbyorderid");
             Payment payment = createTestPayment(order.getId(), Money.krw(25000));
-            paymentRepository.save(payment).block();
+            paymentRepository.save(payment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // When
             var result = paymentRepository.findByOrderId(order.getId());
@@ -295,12 +300,12 @@ class R2dbcPaymentRepositoryIntegrationTest {
             Payment readyPayment2 = createTestPayment(order2.getId(), Money.krw(20000));
             Payment processingPayment = createTestPayment(order3.getId(), Money.krw(30000));
 
-            paymentRepository.save(readyPayment1).block();
-            paymentRepository.save(readyPayment2).block();
+            paymentRepository.save(readyPayment1).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
+            paymentRepository.save(readyPayment2).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // Start processing the third payment
             processingPayment.startProcessing(PaymentMethod.card());
-            paymentRepository.save(processingPayment).block();
+            paymentRepository.save(processingPayment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // When - find READY payments
             var result = paymentRepository.findByStatus(PaymentStatus.READY);
@@ -320,7 +325,7 @@ class R2dbcPaymentRepositoryIntegrationTest {
             // Given
             Order order = createAndSaveOrder("user-no-confirmed");
             Payment payment = createTestPayment(order.getId(), Money.krw(10000));
-            paymentRepository.save(payment).block();
+            paymentRepository.save(payment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // When - find CONFIRMED payments (none exist)
             var result = paymentRepository.findByStatus(PaymentStatus.CONFIRMED);
@@ -343,7 +348,7 @@ class R2dbcPaymentRepositoryIntegrationTest {
             Payment payment = createTestPayment(order.getId(), Money.krw(35000));
             payment.startProcessing(PaymentMethod.card());
             payment.approve("txn-abc", "unique-pg-key-123");
-            paymentRepository.save(payment).block();
+            paymentRepository.save(payment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // When
             var result = paymentRepository.findByPgPaymentKey("unique-pg-key-123");
@@ -380,7 +385,7 @@ class R2dbcPaymentRepositoryIntegrationTest {
             // Given
             Order order = createAndSaveOrder("user-exists-true");
             Payment payment = createTestPayment(order.getId(), Money.krw(5000));
-            Payment savedPayment = paymentRepository.save(payment).block();
+            Payment savedPayment = paymentRepository.save(payment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedPayment).isNotNull();
 
             // When
@@ -424,7 +429,7 @@ class R2dbcPaymentRepositoryIntegrationTest {
             payment.approve("pg-txn-integrity-test", "pg-key-integrity");
             payment.confirm();
 
-            Payment savedPayment = paymentRepository.save(payment).block();
+            Payment savedPayment = paymentRepository.save(payment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedPayment).isNotNull();
 
             // When
@@ -459,7 +464,7 @@ class R2dbcPaymentRepositoryIntegrationTest {
             Payment payment = createTestPayment(order.getId(), Money.krw(50000));
             payment.startProcessing(PaymentMethod.card("Card"));
             payment.fail("Insufficient funds");
-            paymentRepository.save(payment).block();
+            paymentRepository.save(payment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // When
             var result = paymentRepository.findById(payment.getId());
@@ -485,11 +490,11 @@ class R2dbcPaymentRepositoryIntegrationTest {
                     Money.of(BigDecimal.valueOf(100), Currency.USD)
             );
             Order usdOrder = Order.create("user-usd", List.of(usdLineItem), Currency.USD, null);
-            usdOrder = orderRepository.save(usdOrder).block();
+            usdOrder = orderRepository.save(usdOrder).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(usdOrder).isNotNull();
 
             Payment usdPayment = Payment.create(usdOrder.getId(), Money.of(BigDecimal.valueOf(100), Currency.USD));
-            paymentRepository.save(usdPayment).block();
+            paymentRepository.save(usdPayment).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // When
             var result = paymentRepository.findById(usdPayment.getId());
@@ -522,9 +527,9 @@ class R2dbcPaymentRepositoryIntegrationTest {
             Payment payment3 = createTestPayment(order3.getId(), Money.krw(30000));
 
             // When - save all payments
-            paymentRepository.save(payment1).block();
-            paymentRepository.save(payment2).block();
-            paymentRepository.save(payment3).block();
+            paymentRepository.save(payment1).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
+            paymentRepository.save(payment2).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
+            paymentRepository.save(payment3).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // Then - verify each can be found by order ID
             StepVerifier.create(paymentRepository.findByOrderId(order1.getId()))

@@ -7,6 +7,7 @@ import com.fluxpay.engine.domain.model.order.OrderId;
 import com.fluxpay.engine.domain.model.order.OrderLineItem;
 import com.fluxpay.engine.domain.model.order.OrderStatus;
 import com.fluxpay.engine.domain.port.outbound.OrderRepository;
+import com.fluxpay.engine.infrastructure.tenant.TenantContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -37,6 +38,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 @DisplayName("R2dbcOrderRepository Integration Tests")
 class R2dbcOrderRepositoryIntegrationTest {
+
+    private static final String TEST_TENANT_ID = "test-tenant";
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
@@ -118,7 +121,8 @@ class R2dbcOrderRepositoryIntegrationTest {
             Order order = createTestOrder("user-123");
 
             // When
-            var result = orderRepository.save(order);
+            var result = orderRepository.save(order)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID));
 
             // Then
             StepVerifier.create(result)
@@ -141,7 +145,8 @@ class R2dbcOrderRepositoryIntegrationTest {
             Order order = createTestOrderWithMultipleItems("user-456");
 
             // When
-            var result = orderRepository.save(order);
+            var result = orderRepository.save(order)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID));
 
             // Then
             StepVerifier.create(result)
@@ -158,14 +163,16 @@ class R2dbcOrderRepositoryIntegrationTest {
         void shouldUpdateExistingOrder() {
             // Given
             Order order = createTestOrder("user-789");
-            Order savedOrder = orderRepository.save(order).block();
+            Order savedOrder = orderRepository.save(order)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedOrder).isNotNull();
 
             // Mark as paid
             savedOrder.markAsPaid();
 
             // When
-            var result = orderRepository.save(savedOrder);
+            var result = orderRepository.save(savedOrder)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID));
 
             // Then
             StepVerifier.create(result)
@@ -186,7 +193,8 @@ class R2dbcOrderRepositoryIntegrationTest {
         void shouldFindOrderById() {
             // Given
             Order order = createTestOrder("user-111");
-            Order savedOrder = orderRepository.save(order).block();
+            Order savedOrder = orderRepository.save(order)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedOrder).isNotNull();
 
             // When
@@ -229,8 +237,8 @@ class R2dbcOrderRepositoryIntegrationTest {
             String userId = "user-multi";
             Order order1 = createTestOrder(userId);
             Order order2 = createTestOrder(userId);
-            orderRepository.save(order1).block();
-            orderRepository.save(order2).block();
+            orderRepository.save(order1).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
+            orderRepository.save(order2).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // When
             var result = orderRepository.findByUserId(userId);
@@ -261,8 +269,8 @@ class R2dbcOrderRepositoryIntegrationTest {
             // Given
             String userId1 = "user-A";
             String userId2 = "user-B";
-            orderRepository.save(createTestOrder(userId1)).block();
-            orderRepository.save(createTestOrder(userId2)).block();
+            orderRepository.save(createTestOrder(userId1)).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
+            orderRepository.save(createTestOrder(userId2)).transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // When
             var result = orderRepository.findByUserId(userId1);
@@ -286,7 +294,8 @@ class R2dbcOrderRepositoryIntegrationTest {
         void shouldReturnTrueWhenExists() {
             // Given
             Order order = createTestOrder("user-exists");
-            Order savedOrder = orderRepository.save(order).block();
+            Order savedOrder = orderRepository.save(order)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedOrder).isNotNull();
 
             // When
@@ -323,7 +332,8 @@ class R2dbcOrderRepositoryIntegrationTest {
         void shouldDeleteOrder() {
             // Given
             Order order = createTestOrder("user-delete");
-            Order savedOrder = orderRepository.save(order).block();
+            Order savedOrder = orderRepository.save(order)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedOrder).isNotNull();
 
             // When
@@ -362,13 +372,15 @@ class R2dbcOrderRepositoryIntegrationTest {
         void shouldPreserveAllFields() {
             // Given
             Order order = createTestOrder("user-integrity");
-            Order savedOrder = orderRepository.save(order).block();
+            Order savedOrder = orderRepository.save(order)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedOrder).isNotNull();
 
             // Mark as paid and complete
             savedOrder.markAsPaid();
             savedOrder.complete();
-            orderRepository.save(savedOrder).block();
+            orderRepository.save(savedOrder)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
 
             // When
             var result = orderRepository.findById(savedOrder.getId());
@@ -394,7 +406,8 @@ class R2dbcOrderRepositoryIntegrationTest {
         void shouldPreserveLineItemDetails() {
             // Given
             Order order = createTestOrderWithMultipleItems("user-lineitem");
-            Order savedOrder = orderRepository.save(order).block();
+            Order savedOrder = orderRepository.save(order)
+                    .transform(TenantContext.withTenant(TEST_TENANT_ID)).block();
             assertThat(savedOrder).isNotNull();
 
             // When

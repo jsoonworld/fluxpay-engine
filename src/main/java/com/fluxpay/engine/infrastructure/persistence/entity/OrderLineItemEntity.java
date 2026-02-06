@@ -42,6 +42,9 @@ public class OrderLineItemEntity implements Persistable<UUID> {
     @Column("currency")
     private String currency;
 
+    @Column("tenant_id")
+    private String tenantId;
+
     // Default constructor for R2DBC
     public OrderLineItemEntity() {
     }
@@ -112,6 +115,14 @@ public class OrderLineItemEntity implements Persistable<UUID> {
         this.currency = currency;
     }
 
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
     @Override
     public boolean isNew() {
         return isNew;
@@ -119,5 +130,13 @@ public class OrderLineItemEntity implements Persistable<UUID> {
 
     public void setNew(boolean isNew) {
         this.isNew = isNew;
+    }
+
+    /**
+     * Marks this entity as existing (not new) for R2DBC persistence.
+     * Call this method when updating an existing record.
+     */
+    public void markAsExisting() {
+        this.isNew = false;
     }
 }

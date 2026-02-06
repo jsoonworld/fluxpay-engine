@@ -80,7 +80,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).isEqualTo("사용자 ID는 필수입니다");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("User ID is required");
         }
 
         @Test
@@ -106,7 +106,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).isEqualTo("사용자 ID는 100자 이하여야 합니다");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("User ID must be at most 100 characters");
         }
 
         @Test
@@ -125,7 +125,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).isEqualTo("주문 항목은 최소 1개 이상이어야 합니다");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("At least one line item is required");
         }
 
         @Test
@@ -150,7 +150,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).isEqualTo("지원하지 않는 통화입니다");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("Unsupported currency");
         }
 
         @Test
@@ -223,7 +223,7 @@ class RequestDtoTest {
 
                 // Then
                 assertThat(violations).hasSize(1);
-                assertThat(violations.iterator().next().getMessage()).isEqualTo("상품 ID는 필수입니다");
+                assertThat(violations.iterator().next().getMessage()).isEqualTo("Product ID is required");
             }
 
             @Test
@@ -242,7 +242,7 @@ class RequestDtoTest {
 
                 // Then
                 assertThat(violations).hasSize(1);
-                assertThat(violations.iterator().next().getMessage()).isEqualTo("상품명은 필수입니다");
+                assertThat(violations.iterator().next().getMessage()).isEqualTo("Product name is required");
             }
 
             @Test
@@ -262,7 +262,7 @@ class RequestDtoTest {
 
                 // Then
                 assertThat(violations).hasSize(1);
-                assertThat(violations.iterator().next().getMessage()).isEqualTo("상품명은 255자 이하여야 합니다");
+                assertThat(violations.iterator().next().getMessage()).isEqualTo("Product name must be at most 255 characters");
             }
 
             @Test
@@ -281,7 +281,7 @@ class RequestDtoTest {
 
                 // Then
                 assertThat(violations).hasSize(1);
-                assertThat(violations.iterator().next().getMessage()).isEqualTo("수량은 필수입니다");
+                assertThat(violations.iterator().next().getMessage()).isEqualTo("Quantity is required");
             }
 
             @Test
@@ -300,7 +300,7 @@ class RequestDtoTest {
 
                 // Then
                 assertThat(violations).hasSize(1);
-                assertThat(violations.iterator().next().getMessage()).isEqualTo("수량은 1 이상이어야 합니다");
+                assertThat(violations.iterator().next().getMessage()).isEqualTo("Quantity must be at least 1");
             }
 
             @Test
@@ -319,7 +319,7 @@ class RequestDtoTest {
 
                 // Then
                 assertThat(violations).hasSize(1);
-                assertThat(violations.iterator().next().getMessage()).isEqualTo("단가는 필수입니다");
+                assertThat(violations.iterator().next().getMessage()).isEqualTo("Unit price is required");
             }
 
             @Test
@@ -338,7 +338,7 @@ class RequestDtoTest {
 
                 // Then
                 assertThat(violations).hasSize(1);
-                assertThat(violations.iterator().next().getMessage()).isEqualTo("단가는 0보다 커야 합니다");
+                assertThat(violations.iterator().next().getMessage()).isEqualTo("Unit price must be greater than 0");
             }
 
             @Test
@@ -357,7 +357,7 @@ class RequestDtoTest {
 
                 // Then
                 assertThat(violations).hasSize(1);
-                assertThat(violations.iterator().next().getMessage()).isEqualTo("단가는 0보다 커야 합니다");
+                assertThat(violations.iterator().next().getMessage()).isEqualTo("Unit price must be greater than 0");
             }
         }
 
@@ -426,7 +426,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).isEqualTo("주문 ID는 UUID 형식이어야 합니다");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("Order ID must be a UUID");
         }
 
         @Test
@@ -444,7 +444,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).isNotEmpty();
-            assertThat(violations.stream().anyMatch(v -> v.getMessage().equals("주문 ID는 필수입니다"))).isTrue();
+            assertThat(violations.stream().anyMatch(v -> v.getMessage().equals("Order ID is required"))).isTrue();
         }
 
         @Test
@@ -463,7 +463,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).isEqualTo("결제 금액은 필수입니다");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("Amount is required");
         }
 
         @Test
@@ -482,7 +482,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).isEqualTo("결제 금액은 0보다 커야 합니다");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("Amount must be greater than 0");
         }
 
         @Test
@@ -501,7 +501,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).isEqualTo("결제 금액은 0보다 커야 합니다");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("Amount must be greater than 0");
         }
 
         @Test
@@ -520,7 +520,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).isNotEmpty();
-            assertThat(violations.stream().anyMatch(v -> v.getMessage().equals("통화는 필수입니다"))).isTrue();
+            assertThat(violations.stream().anyMatch(v -> v.getMessage().equals("Currency is required"))).isTrue();
         }
 
         @Test
@@ -539,7 +539,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).isEqualTo("지원하지 않는 통화입니다");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("Unsupported currency");
         }
 
         @Test
@@ -611,7 +611,7 @@ class RequestDtoTest {
             // Then
             assertThat(violations).hasSize(1);
             assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("간편결제 시 easyPayProvider는 필수입니다");
+                .isEqualTo("easyPayProvider is required for EASY_PAY payments");
         }
 
         @Test
@@ -626,7 +626,7 @@ class RequestDtoTest {
             // Then
             assertThat(violations).hasSize(1);
             assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("간편결제 시 easyPayProvider는 필수입니다");
+                .isEqualTo("easyPayProvider is required for EASY_PAY payments");
         }
 
         @Test
@@ -640,7 +640,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).isNotEmpty();
-            assertThat(violations.stream().anyMatch(v -> v.getMessage().equals("결제 수단은 필수입니다"))).isTrue();
+            assertThat(violations.stream().anyMatch(v -> v.getMessage().equals("Payment method is required"))).isTrue();
         }
 
         @Test
@@ -654,7 +654,7 @@ class RequestDtoTest {
 
             // Then
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).isEqualTo("지원하지 않는 결제 수단입니다");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("Unsupported payment method");
         }
 
         @Test

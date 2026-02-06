@@ -1,5 +1,6 @@
 package com.fluxpay.engine.infrastructure.persistence.adapter;
 
+import com.fluxpay.engine.infrastructure.tenant.TenantNotFoundException;
 import com.fluxpay.engine.domain.model.order.Order;
 import com.fluxpay.engine.domain.model.order.OrderId;
 import com.fluxpay.engine.domain.port.outbound.OrderRepository;
@@ -8,6 +9,7 @@ import com.fluxpay.engine.infrastructure.persistence.entity.OrderLineItemEntity;
 import com.fluxpay.engine.infrastructure.persistence.mapper.OrderMapper;
 import com.fluxpay.engine.infrastructure.persistence.repository.OrderLineItemR2dbcRepository;
 import com.fluxpay.engine.infrastructure.persistence.repository.OrderR2dbcRepository;
+import com.fluxpay.engine.infrastructure.tenant.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -45,18 +47,20 @@ public class R2dbcOrderRepository implements OrderRepository {
     public Mono<Order> save(Order order) {
         log.debug("Saving order: id={}", order.getId());
 
-        OrderEntity orderEntity = mapper.toEntity(order);
-        List<OrderLineItemEntity> lineItemEntities = mapper.toLineItemEntities(order);
+        return TenantContext.getTenantIdOrEmpty()
+                .switchIfEmpty(Mono.error(new TenantNotFoundException("Tenant ID is required for saving orders")))
+                .flatMap(tenantId -> {
+                    OrderEntity orderEntity = mapper.toEntity(order, tenantId);
+                    List<OrderLineItemEntity> lineItemEntities = mapper.toLineItemEntities(order, tenantId);
 
-        return orderR2dbcRepository.existsById(orderEntity.getId())
-                .flatMap(exists -> {
-                    if (exists) {
-                        // Update existing order
-                        return updateOrder(orderEntity, lineItemEntities, order);
-                    } else {
-                        // Insert new order
-                        return insertOrder(orderEntity, lineItemEntities, order);
-                    }
+                    return orderR2dbcRepository.existsById(orderEntity.getId())
+                            .flatMap(exists -> {
+                                if (exists) {
+                                    return updateOrder(orderEntity, lineItemEntities, order);
+                                } else {
+                                    return insertOrder(orderEntity, lineItemEntities, order);
+                                }
+                            });
                 })
                 .doOnSuccess(savedOrder -> log.debug("Order saved: id={}", savedOrder.getId()))
                 .doOnError(error -> log.error("Failed to save order: id={}", order.getId(), error));

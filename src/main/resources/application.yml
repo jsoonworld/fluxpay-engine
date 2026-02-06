@@ -89,3 +89,26 @@ fluxpay:
       enabled: true
       max-concurrent-users: 1000
       entry-rate-per-second: 100
+
+  tenant:
+    enabled: false  # default disabled for test compatibility
+
+  idempotency:
+    enabled: true
+    ttl: 24h
+    redis:
+      key-prefix: idempotency
+      timeout: 3s
+
+  tenants:
+    configs:
+      default:
+        rate-limit: 100
+        credit-enabled: false
+        subscription-enabled: false
+        webhook-url: ""
+      service-a:
+        rate-limit: 1000
+        credit-enabled: true
+        subscription-enabled: false
+        webhook-url: "https://service-a.com/webhooks"

@@ -5,6 +5,11 @@ import com.fluxpay.engine.domain.exception.InvalidPaymentStateException;
 import com.fluxpay.engine.domain.exception.OrderNotFoundException;
 import com.fluxpay.engine.domain.exception.PaymentNotFoundException;
 import com.fluxpay.engine.domain.exception.PaymentProcessingException;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyConflictException;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyKeyInvalidException;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyKeyMissingException;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyProcessingException;
+import com.fluxpay.engine.infrastructure.tenant.TenantNotFoundException;
 import com.fluxpay.engine.presentation.dto.ApiResponse;
 import com.fluxpay.engine.presentation.dto.FieldError;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +71,36 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<ApiResponse<Void>>> handlePaymentProcessingException(PaymentProcessingException ex) {
         log.error("Payment processing error: {}", ex.getMessage(), ex);
         return createErrorResponse(ErrorCode.PG_CONNECTION_ERROR);
+    }
+
+    @ExceptionHandler(TenantNotFoundException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleTenantNotFoundException(TenantNotFoundException ex) {
+        log.warn("Tenant not found: {}", ex.getMessage());
+        return createErrorResponse(ErrorCode.TENANT_HEADER_MISSING);
+    }
+
+    @ExceptionHandler(IdempotencyKeyMissingException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleIdempotencyKeyMissing(IdempotencyKeyMissingException ex) {
+        log.warn("Idempotency key missing: {}", ex.getMessage());
+        return createErrorResponse(ErrorCode.IDEMPOTENCY_KEY_MISSING);
+    }
+
+    @ExceptionHandler(IdempotencyKeyInvalidException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleIdempotencyKeyInvalid(IdempotencyKeyInvalidException ex) {
+        log.warn("Idempotency key invalid: {}", ex.getMessage());
+        return createErrorResponse(ErrorCode.IDEMPOTENCY_KEY_INVALID);
+    }
+
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleIdempotencyConflict(IdempotencyConflictException ex) {
+        log.warn("Idempotency conflict for key {}: {}", ex.getIdempotencyKey(), ex.getMessage());
+        return createErrorResponse(ErrorCode.IDEMPOTENCY_CONFLICT);
+    }
+
+    @ExceptionHandler(IdempotencyProcessingException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleIdempotencyProcessing(IdempotencyProcessingException ex) {
+        log.warn("Idempotency processing for key {}: {}", ex.getIdempotencyKey(), ex.getMessage());
+        return createErrorResponse(ErrorCode.IDEMPOTENCY_PROCESSING);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

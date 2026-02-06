@@ -43,6 +43,9 @@ public class OrderEntity implements Persistable<UUID> {
     @Column("updated_at")
     private Instant updatedAt;
 
+    @Column("tenant_id")
+    private String tenantId;
+
     @Column("paid_at")
     private Instant paidAt;
 
@@ -117,6 +120,14 @@ public class OrderEntity implements Persistable<UUID> {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
     }
 
     public Instant getPaidAt() {

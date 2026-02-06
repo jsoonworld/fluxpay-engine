@@ -37,6 +37,18 @@ public class OrderMapper {
      * @throws IllegalArgumentException if order is null
      */
     public OrderEntity toEntity(Order order) {
+        return toEntity(order, null);
+    }
+
+    /**
+     * Converts an Order domain object to an OrderEntity with tenantId.
+     *
+     * @param order the Order domain object
+     * @param tenantId the tenant ID to set on the entity
+     * @return the OrderEntity with tenantId set
+     * @throws IllegalArgumentException if order is null
+     */
+    public OrderEntity toEntity(Order order, String tenantId) {
         if (order == null) {
             throw new IllegalArgumentException("Order cannot be null");
         }
@@ -52,6 +64,7 @@ public class OrderMapper {
         entity.setUpdatedAt(order.getUpdatedAt());
         entity.setPaidAt(order.getPaidAt());
         entity.setCompletedAt(order.getCompletedAt());
+        entity.setTenantId(tenantId);
 
         return entity;
     }
@@ -63,6 +76,17 @@ public class OrderMapper {
      * @return the list of OrderLineItemEntity
      */
     public List<OrderLineItemEntity> toLineItemEntities(Order order) {
+        return toLineItemEntities(order, null);
+    }
+
+    /**
+     * Converts Order line items to OrderLineItemEntity list with tenantId.
+     *
+     * @param order the Order domain object
+     * @param tenantId the tenant ID to set on the entities
+     * @return the list of OrderLineItemEntity with tenantId set
+     */
+    public List<OrderLineItemEntity> toLineItemEntities(Order order, String tenantId) {
         if (order == null) {
             throw new IllegalArgumentException("Order cannot be null");
         }
@@ -71,11 +95,11 @@ public class OrderMapper {
         String currency = order.getCurrency().name();
 
         return order.getLineItems().stream()
-                .map(lineItem -> toLineItemEntity(lineItem, orderId, currency))
+                .map(lineItem -> toLineItemEntity(lineItem, orderId, currency, tenantId))
                 .toList();
     }
 
-    private OrderLineItemEntity toLineItemEntity(OrderLineItem lineItem, UUID orderId, String currency) {
+    private OrderLineItemEntity toLineItemEntity(OrderLineItem lineItem, UUID orderId, String currency, String tenantId) {
         OrderLineItemEntity entity = new OrderLineItemEntity();
         entity.setId(lineItem.getId());
         entity.setOrderId(orderId);
@@ -85,6 +109,7 @@ public class OrderMapper {
         entity.setUnitPrice(lineItem.getUnitPrice().amount());
         entity.setTotalPrice(lineItem.getTotalPrice().amount());
         entity.setCurrency(currency);
+        entity.setTenantId(tenantId);
         return entity;
     }
 

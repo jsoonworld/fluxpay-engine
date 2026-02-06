@@ -64,6 +64,9 @@ public class PaymentEntity implements Persistable<UUID> {
     @Column("updated_at")
     private Instant updatedAt;
 
+    @Column("tenant_id")
+    private String tenantId;
+
     // Default constructor for R2DBC
     public PaymentEntity() {
     }
@@ -189,6 +192,14 @@ public class PaymentEntity implements Persistable<UUID> {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
     }
 
     @Override

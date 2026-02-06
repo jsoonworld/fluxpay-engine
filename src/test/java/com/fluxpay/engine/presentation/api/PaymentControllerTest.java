@@ -10,6 +10,10 @@ import com.fluxpay.engine.domain.model.payment.PaymentId;
 import com.fluxpay.engine.domain.model.payment.PaymentMethod;
 import com.fluxpay.engine.domain.model.payment.PaymentStatus;
 import com.fluxpay.engine.domain.service.PaymentService;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyKey;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyResult;
+import com.fluxpay.engine.infrastructure.idempotency.IdempotencyService;
+import com.fluxpay.engine.infrastructure.tenant.TenantWebFilter;
 import com.fluxpay.engine.presentation.dto.request.ApprovePaymentRequest;
 import com.fluxpay.engine.presentation.dto.request.CreatePaymentRequest;
 import com.fluxpay.engine.presentation.exception.GlobalExceptionHandler;
@@ -29,8 +33,12 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -39,14 +47,23 @@ import static org.mockito.Mockito.when;
  * Tests all payment API endpoints using WebFluxTest.
  */
 @WebFluxTest(PaymentController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TenantWebFilter.class})
+@org.springframework.test.context.TestPropertySource(properties = "fluxpay.tenant.enabled=true")
 class PaymentControllerTest {
+
+    private static final String TENANT_HEADER = "X-Tenant-Id";
+    private static final String TEST_TENANT_ID = "test-tenant";
+    private static final String IDEMPOTENCY_HEADER = "X-Idempotency-Key";
+    private static final String TEST_IDEMPOTENCY_KEY = "550e8400-e29b-41d4-a716-446655440000";
 
     @Autowired
     private WebTestClient webTestClient;
 
     @MockBean
     private PaymentService paymentService;
+
+    @MockBean
+    private IdempotencyService idempotencyService;
 
     private static final String BASE_URL = "/api/v1/payments";
     private static final UUID TEST_PAYMENT_ID = UUID.randomUUID();
@@ -71,6 +88,14 @@ class PaymentControllerTest {
             null,
             null
         );
+
+        // Configure IdempotencyService mock to always return MISS (pass through)
+        when(idempotencyService.acquireLock(any(IdempotencyKey.class), anyString(), any(Duration.class)))
+            .thenReturn(Mono.just(IdempotencyResult.miss()));
+        when(idempotencyService.store(any(IdempotencyKey.class), anyString(), anyString(), anyInt(), any(Duration.class)))
+            .thenReturn(Mono.empty());
+        when(idempotencyService.releaseLock(any(IdempotencyKey.class)))
+            .thenReturn(Mono.empty());
     }
 
     @Nested
@@ -93,6 +118,8 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
+                .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -120,6 +147,8 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
+                .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -142,6 +171,8 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
+                .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -164,6 +195,8 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
+                .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -206,6 +239,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/approve")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -246,6 +280,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/approve")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -268,6 +303,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/approve")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -286,6 +322,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/approve")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
@@ -326,6 +363,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/confirm")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
@@ -345,6 +383,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/confirm")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody()
@@ -363,6 +402,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.post()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID + "/confirm")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
@@ -385,6 +425,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.get()
                 .uri(BASE_URL + "/" + TEST_PAYMENT_ID)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
@@ -407,6 +448,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.get()
                 .uri(BASE_URL + "/" + nonExistentId)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody()
@@ -420,6 +462,7 @@ class PaymentControllerTest {
             // When & Then
             webTestClient.get()
                 .uri(BASE_URL + "/invalid-uuid")
+                .header(TENANT_HEADER, TEST_TENANT_ID)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()

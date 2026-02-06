@@ -61,6 +61,18 @@ public class PaymentMapper {
      * @throws IllegalArgumentException if payment is null
      */
     public PaymentEntity toEntity(Payment payment) {
+        return toEntity(payment, null);
+    }
+
+    /**
+     * Converts a Payment domain object to a PaymentEntity with tenantId.
+     *
+     * @param payment the Payment domain object to convert
+     * @param tenantId the tenant ID to set on the entity
+     * @return the PaymentEntity with tenantId set
+     * @throws IllegalArgumentException if payment is null
+     */
+    public PaymentEntity toEntity(Payment payment, String tenantId) {
         if (payment == null) {
             throw new IllegalArgumentException("Payment cannot be null");
         }
@@ -85,6 +97,7 @@ public class PaymentMapper {
         entity.setFailedAt(payment.getFailedAt());
         entity.setCreatedAt(payment.getCreatedAt());
         entity.setUpdatedAt(payment.getUpdatedAt());
+        entity.setTenantId(tenantId);
 
         return entity;
     }

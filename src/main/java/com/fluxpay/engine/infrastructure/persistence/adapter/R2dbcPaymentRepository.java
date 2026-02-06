@@ -1,5 +1,6 @@
 package com.fluxpay.engine.infrastructure.persistence.adapter;
 
+import com.fluxpay.engine.infrastructure.tenant.TenantNotFoundException;
 import com.fluxpay.engine.domain.model.order.OrderId;
 import com.fluxpay.engine.domain.model.payment.Payment;
 import com.fluxpay.engine.domain.model.payment.PaymentId;
@@ -8,6 +9,7 @@ import com.fluxpay.engine.domain.port.outbound.PaymentRepository;
 import com.fluxpay.engine.infrastructure.persistence.entity.PaymentEntity;
 import com.fluxpay.engine.infrastructure.persistence.mapper.PaymentMapper;
 import com.fluxpay.engine.infrastructure.persistence.repository.PaymentR2dbcRepository;
+import com.fluxpay.engine.infrastructure.tenant.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -35,14 +37,16 @@ public class R2dbcPaymentRepository implements PaymentRepository {
     public Mono<Payment> save(Payment payment) {
         log.debug("Saving payment: id={}", payment.getId());
 
-        return r2dbcRepository.existsById(payment.getId().value())
-                .flatMap(exists -> {
-                    PaymentEntity entity = mapper.toEntity(payment);
-                    if (exists) {
-                        entity.markAsExisting();
-                    }
-                    return r2dbcRepository.save(entity);
-                })
+        return TenantContext.getTenantIdOrEmpty()
+                .switchIfEmpty(Mono.error(new TenantNotFoundException("Tenant ID is required for saving payments")))
+                .flatMap(tenantId -> r2dbcRepository.existsById(payment.getId().value())
+                        .flatMap(exists -> {
+                            PaymentEntity entity = mapper.toEntity(payment, tenantId);
+                            if (exists) {
+                                entity.markAsExisting();
+                            }
+                            return r2dbcRepository.save(entity);
+                        }))
                 .map(mapper::toDomain)
                 .doOnSuccess(savedPayment -> log.debug("Payment saved: id={}", savedPayment.getId()))
                 .doOnError(error -> log.error("Failed to save payment: id={}", payment.getId(), error));
