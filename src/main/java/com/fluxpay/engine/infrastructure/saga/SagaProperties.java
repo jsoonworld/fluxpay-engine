@@ -19,8 +19,8 @@ public record SagaProperties(
     @DefaultValue("true") boolean enabled,
     @DefaultValue("30s") Duration timeout,
     @DefaultValue("10s") Duration stepTimeout,
-    Compensation compensation,
-    Cleanup cleanup
+    @DefaultValue Compensation compensation,
+    @DefaultValue Cleanup cleanup
 ) {
     /**
      * Compensation settings.

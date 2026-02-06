@@ -90,7 +90,7 @@ public class SagaOrchestrator {
             });
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // SagaStep<?> wildcards require unchecked cast when combined with Mono<T> return type
     private <T> Mono<T> executeStepsSequentially(Saga<T> saga, SagaContext context,
                                                    SagaInstance instance, List<SagaStep<?>> steps,
                                                    int stepIndex) {
@@ -127,7 +127,7 @@ public class SagaOrchestrator {
             });
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // SagaStep<?> wildcards require unchecked cast when combined with Mono<T> return type
     private <T> Mono<T> compensate(Saga<T> saga, SagaContext context, SagaInstance instance,
                                     List<SagaStep<?>> steps, Throwable originalError) {
         log.info("Starting compensation: sagaId={}, failedStep={}",

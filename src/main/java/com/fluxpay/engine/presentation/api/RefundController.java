@@ -23,7 +23,10 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.HexFormat;
 import java.util.List;
 
 /**
@@ -114,9 +117,13 @@ public class RefundController {
 
     private String computePayloadHash(CreateRefundRequest request) {
         try {
-            return String.valueOf(objectMapper.writeValueAsString(request).hashCode());
+            byte[] hash = MessageDigest.getInstance("SHA-256")
+                .digest(objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
         } catch (JsonProcessingException e) {
-            return String.valueOf(request.hashCode());
+            throw new IllegalStateException("Failed to serialize request for payload hash", e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
         }
     }
 

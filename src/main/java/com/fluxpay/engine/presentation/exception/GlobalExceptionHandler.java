@@ -78,7 +78,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidRefundException.class)
     public Mono<ResponseEntity<ApiResponse<Void>>> handleInvalidRefundException(InvalidRefundException ex) {
         log.warn("Invalid refund: {}", ex.getMessage());
-        return createErrorResponse(ErrorCode.REFUND_AMOUNT_EXCEEDED);
+        ErrorCode errorCode = resolveRefundErrorCode(ex.getErrorCode());
+        return createErrorResponse(errorCode);
+    }
+
+    private ErrorCode resolveRefundErrorCode(String code) {
+        if (code == null) {
+            return ErrorCode.REFUND_AMOUNT_EXCEEDED;
+        }
+        for (ErrorCode ec : ErrorCode.values()) {
+            if (ec.getCode().equals(code)) {
+                return ec;
+            }
+        }
+        return ErrorCode.REFUND_AMOUNT_EXCEEDED;
     }
 
     @ExceptionHandler(RefundNotFoundException.class)

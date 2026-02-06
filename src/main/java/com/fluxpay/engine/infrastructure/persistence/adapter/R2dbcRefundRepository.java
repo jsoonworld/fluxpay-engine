@@ -93,8 +93,8 @@ public class R2dbcRefundRepository implements RefundRepository {
         log.debug("Getting total refunded amount for paymentId: {}", paymentId);
 
         return r2dbcRepository.getTotalRefundedAmount(paymentId.value().toString())
-            .map(total -> Money.krw(total.longValue()))
-            .defaultIfEmpty(Money.krw(0))
+            .map(total -> Money.of(total, Currency.KRW))
+            .defaultIfEmpty(Money.of(BigDecimal.ZERO, Currency.KRW))
             .doOnSuccess(total -> log.debug("Total refunded amount for paymentId {}: {}",
                 paymentId, total))
             .doOnError(error -> log.error("Failed to get total refunded amount for paymentId: {}",
