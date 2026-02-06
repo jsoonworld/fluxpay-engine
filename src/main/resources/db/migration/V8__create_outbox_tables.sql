@@ -13,7 +13,7 @@ CREATE TABLE outbox_events (
     published_at    TIMESTAMP WITH TIME ZONE,
     error_message   TEXT,
 
-    CONSTRAINT ck_outbox_status CHECK (status IN ('PENDING', 'PUBLISHED', 'FAILED'))
+    CONSTRAINT ck_outbox_status CHECK (status IN ('PENDING', 'PROCESSING', 'PUBLISHED', 'FAILED'))
 );
 
 -- Pending events polling index (partial index for performance)
@@ -36,8 +36,6 @@ CREATE TABLE processed_events (
 -- TTL-based cleanup index
 CREATE INDEX idx_processed_events_time ON processed_events (processed_at);
 
--- Row Level Security for outbox_events
-ALTER TABLE outbox_events ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY tenant_isolation_outbox ON outbox_events
-    USING (tenant_id = current_setting('app.tenant_id', true));
+-- Note: No RLS on outbox_events - the outbox publisher is an infrastructure
+-- component that must process events across all tenants. Tenant isolation is
+-- enforced at the domain/application layer, not at the outbox infrastructure level.

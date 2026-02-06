@@ -38,7 +38,8 @@ class OutboxPublisherTest {
 
     @BeforeEach
     void setUp() {
-        outboxPublisher = new OutboxPublisher(outboxRepository, kafkaPublisher, BATCH_SIZE, MAX_RETRIES);
+        outboxPublisher = new OutboxPublisher(
+            outboxRepository, kafkaPublisher, BATCH_SIZE, MAX_RETRIES, true, 7);
     }
 
     @Nested
@@ -46,12 +47,12 @@ class OutboxPublisherTest {
     class PublishPendingEvents {
 
         @Test
-        @DisplayName("should publish pending events to Kafka and mark as published")
-        void shouldPublishPendingEvents() {
+        @DisplayName("should claim pending events atomically and publish to Kafka")
+        void shouldClaimAndPublishPendingEvents() {
             // Given
             OutboxEvent event1 = createOutboxEvent(1L, "evt-1");
             OutboxEvent event2 = createOutboxEvent(2L, "evt-2");
-            when(outboxRepository.findPendingEvents(BATCH_SIZE))
+            when(outboxRepository.claimPendingEvents(BATCH_SIZE))
                 .thenReturn(Flux.just(event1, event2));
             when(kafkaPublisher.send(any(OutboxEvent.class)))
                 .thenReturn(Mono.empty());
@@ -62,6 +63,7 @@ class OutboxPublisherTest {
             StepVerifier.create(outboxPublisher.publishPendingEvents())
                 .verifyComplete();
 
+            verify(outboxRepository).claimPendingEvents(BATCH_SIZE);
             verify(kafkaPublisher).send(event1);
             verify(kafkaPublisher).send(event2);
             verify(outboxRepository).markAsPublished(1L);
@@ -69,10 +71,10 @@ class OutboxPublisherTest {
         }
 
         @Test
-        @DisplayName("should do nothing when no pending events")
+        @DisplayName("should do nothing when no pending events to claim")
         void shouldDoNothingWhenNoPendingEvents() {
             // Given
-            when(outboxRepository.findPendingEvents(BATCH_SIZE))
+            when(outboxRepository.claimPendingEvents(BATCH_SIZE))
                 .thenReturn(Flux.empty());
 
             // When & Then
@@ -84,24 +86,25 @@ class OutboxPublisherTest {
         }
 
         @Test
-        @DisplayName("should increment retry count on Kafka failure")
-        void shouldIncrementRetryCountOnKafkaFailure() {
+        @DisplayName("should reset to PENDING with incremented retry count on Kafka failure")
+        void shouldResetToPendingOnKafkaFailure() {
             // Given
             OutboxEvent event = createOutboxEvent(1L, "evt-1");
             event.setRetryCount(0);
-            when(outboxRepository.findPendingEvents(BATCH_SIZE))
+            when(outboxRepository.claimPendingEvents(BATCH_SIZE))
                 .thenReturn(Flux.just(event));
             when(kafkaPublisher.send(any(OutboxEvent.class)))
                 .thenReturn(Mono.error(new RuntimeException("Kafka unavailable")));
-            when(outboxRepository.incrementRetryCount(1L))
+            when(outboxRepository.resetToPending(1L))
                 .thenReturn(Mono.just(1));
 
             // When & Then
             StepVerifier.create(outboxPublisher.publishPendingEvents())
                 .verifyComplete();
 
-            verify(outboxRepository).incrementRetryCount(1L);
+            verify(outboxRepository).resetToPending(1L);
             verify(outboxRepository, never()).markAsPublished(anyLong());
+            verify(outboxRepository, never()).markAsFailed(anyLong(), anyString());
         }
 
         @Test
@@ -110,7 +113,7 @@ class OutboxPublisherTest {
             // Given
             OutboxEvent event = createOutboxEvent(1L, "evt-1");
             event.setRetryCount(MAX_RETRIES);
-            when(outboxRepository.findPendingEvents(BATCH_SIZE))
+            when(outboxRepository.claimPendingEvents(BATCH_SIZE))
                 .thenReturn(Flux.just(event));
             when(kafkaPublisher.send(any(OutboxEvent.class)))
                 .thenReturn(Mono.error(new RuntimeException("Kafka unavailable")));
@@ -122,7 +125,7 @@ class OutboxPublisherTest {
                 .verifyComplete();
 
             verify(outboxRepository).markAsFailed(eq(1L), anyString());
-            verify(outboxRepository, never()).incrementRetryCount(anyLong());
+            verify(outboxRepository, never()).resetToPending(anyLong());
         }
 
         @Test
@@ -133,7 +136,7 @@ class OutboxPublisherTest {
             OutboxEvent event2 = createOutboxEvent(2L, "evt-2");
             OutboxEvent event3 = createOutboxEvent(3L, "evt-3");
 
-            when(outboxRepository.findPendingEvents(BATCH_SIZE))
+            when(outboxRepository.claimPendingEvents(BATCH_SIZE))
                 .thenReturn(Flux.just(event1, event2, event3));
 
             when(kafkaPublisher.send(event1)).thenReturn(Mono.empty());
@@ -143,15 +146,34 @@ class OutboxPublisherTest {
 
             when(outboxRepository.markAsPublished(1L)).thenReturn(Mono.just(1));
             when(outboxRepository.markAsPublished(3L)).thenReturn(Mono.just(1));
-            when(outboxRepository.incrementRetryCount(2L)).thenReturn(Mono.just(1));
+            when(outboxRepository.resetToPending(2L)).thenReturn(Mono.just(1));
 
             // When & Then
             StepVerifier.create(outboxPublisher.publishPendingEvents())
                 .verifyComplete();
 
             verify(outboxRepository).markAsPublished(1L);
-            verify(outboxRepository).incrementRetryCount(2L);
+            verify(outboxRepository).resetToPending(2L);
             verify(outboxRepository).markAsPublished(3L);
+        }
+    }
+
+    @Nested
+    @DisplayName("cleanupPublishedEvents")
+    class CleanupPublishedEvents {
+
+        @Test
+        @DisplayName("should delete published events older than retention period")
+        void shouldDeleteOldPublishedEvents() {
+            // Given
+            when(outboxRepository.deletePublishedBefore(any(Instant.class)))
+                .thenReturn(Mono.just(42));
+
+            // When & Then
+            StepVerifier.create(outboxPublisher.cleanupPublishedEvents())
+                .verifyComplete();
+
+            verify(outboxRepository).deletePublishedBefore(any(Instant.class));
         }
     }
 

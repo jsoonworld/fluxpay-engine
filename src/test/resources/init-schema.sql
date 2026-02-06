@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS refunds (
     refund_id       VARCHAR(50) NOT NULL UNIQUE,
     tenant_id       VARCHAR(50) NOT NULL DEFAULT '__default__',
     payment_id      VARCHAR(50) NOT NULL,
-    amount          DECIMAL(15, 2) NOT NULL,
+    amount          DECIMAL(19, 4) NOT NULL,
     currency        VARCHAR(3) NOT NULL,
     reason          VARCHAR(500),
     status          VARCHAR(20) NOT NULL,
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS webhooks (
     error_message   TEXT,
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 
-    CONSTRAINT ck_webhook_status CHECK (status IN ('PENDING', 'DELIVERED', 'FAILED'))
+    CONSTRAINT ck_webhook_status CHECK (status IN ('PENDING', 'SENDING', 'DELIVERED', 'FAILED', 'RETRYING'))
 );
 
 -- Webhooks Indexes
@@ -194,7 +194,7 @@ CREATE TABLE IF NOT EXISTS outbox_events (
     published_at    TIMESTAMP WITH TIME ZONE,
     error_message   TEXT,
 
-    CONSTRAINT ck_outbox_status CHECK (status IN ('PENDING', 'PUBLISHED', 'FAILED'))
+    CONSTRAINT ck_outbox_status CHECK (status IN ('PENDING', 'PROCESSING', 'PUBLISHED', 'FAILED'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox_events (status, created_at);
