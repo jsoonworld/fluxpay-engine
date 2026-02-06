@@ -178,3 +178,34 @@ CREATE TABLE IF NOT EXISTS webhook_secrets (
     created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     rotated_at  TIMESTAMP WITH TIME ZONE
 );
+
+-- Outbox Events Table
+CREATE TABLE IF NOT EXISTS outbox_events (
+    id              BIGSERIAL PRIMARY KEY,
+    event_id        VARCHAR(50) NOT NULL UNIQUE,
+    tenant_id       VARCHAR(50) NOT NULL DEFAULT '__default__',
+    aggregate_type  VARCHAR(50) NOT NULL,
+    aggregate_id    VARCHAR(50) NOT NULL,
+    event_type      VARCHAR(100) NOT NULL,
+    payload         TEXT NOT NULL,
+    status          VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    retry_count     INT NOT NULL DEFAULT 0,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    published_at    TIMESTAMP WITH TIME ZONE,
+    error_message   TEXT,
+
+    CONSTRAINT ck_outbox_status CHECK (status IN ('PENDING', 'PUBLISHED', 'FAILED'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox_events (status, created_at);
+CREATE INDEX IF NOT EXISTS idx_outbox_tenant ON outbox_events (tenant_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_outbox_aggregate ON outbox_events (aggregate_type, aggregate_id);
+
+-- Processed Events Table (Consumer idempotency)
+CREATE TABLE IF NOT EXISTS processed_events (
+    id           BIGSERIAL PRIMARY KEY,
+    event_id     VARCHAR(50) NOT NULL UNIQUE,
+    processed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_processed_events_time ON processed_events (processed_at);
