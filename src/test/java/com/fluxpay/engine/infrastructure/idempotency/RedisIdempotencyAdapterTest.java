@@ -1,5 +1,8 @@
 package com.fluxpay.engine.infrastructure.idempotency;
 
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyKey;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyResult;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyStatus;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.redis.core.ReactiveHashOperations;
@@ -27,7 +30,7 @@ class RedisIdempotencyAdapterTest {
     private RedisIdempotencyAdapter adapter;
 
     @BeforeEach
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // Mockito mock() returns raw types due to generic type erasure
     void setUp() {
         redisTemplate = mock(ReactiveRedisTemplate.class);
         hashOperations = mock(ReactiveHashOperations.class);

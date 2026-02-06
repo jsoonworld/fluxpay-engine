@@ -84,4 +84,23 @@ public interface IdempotencyKeyR2dbcRepository extends ReactiveCrudRepository<Id
     @Modifying
     @Query("DELETE FROM idempotency_keys WHERE expires_at < :expiresAt")
     Mono<Integer> deleteByExpiresAtBefore(Instant expiresAt);
+
+    /**
+     * Delete an idempotency key if it has expired before the given timestamp.
+     * Used to clean up expired records during lock acquisition.
+     *
+     * @param tenantId       the tenant ID
+     * @param endpoint       the API endpoint
+     * @param idempotencyKey the idempotency key
+     * @param expiresAt      the cutoff timestamp; key will be deleted if expires_at is before this
+     * @return the count of deleted records (0 or 1)
+     */
+    @Modifying
+    @Query("""
+        DELETE FROM idempotency_keys
+        WHERE tenant_id = :tenantId AND endpoint = :endpoint AND idempotency_key = :idempotencyKey
+        AND expires_at < :expiresAt
+        """)
+    Mono<Long> deleteByTenantIdAndEndpointAndIdempotencyKeyAndExpiresAtBefore(
+        String tenantId, String endpoint, String idempotencyKey, Instant expiresAt);
 }

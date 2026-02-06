@@ -1,5 +1,8 @@
 package com.fluxpay.engine.infrastructure.idempotency;
 
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyKey;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyResult;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyStatus;
 import com.fluxpay.engine.infrastructure.persistence.entity.IdempotencyKeyEntity;
 import com.fluxpay.engine.infrastructure.persistence.repository.IdempotencyKeyR2dbcRepository;
 import org.junit.jupiter.api.BeforeEach;

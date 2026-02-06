@@ -1,5 +1,8 @@
 package com.fluxpay.engine.infrastructure.idempotency;
 
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyKey;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyResult;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyStatus;
 import com.fluxpay.engine.domain.port.outbound.IdempotencyPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,8 +168,13 @@ public class RedisIdempotencyAdapter implements IdempotencyPort {
             int lastColonIndex = remainder.lastIndexOf(':');
             if (lastColonIndex > 0) {
                 String response = remainder.substring(0, lastColonIndex);
-                int httpStatus = Integer.parseInt(remainder.substring(lastColonIndex + 1));
-                return IdempotencyResult.hit(response, httpStatus);
+                try {
+                    int httpStatus = Integer.parseInt(remainder.substring(lastColonIndex + 1));
+                    return IdempotencyResult.hit(response, httpStatus);
+                } catch (NumberFormatException e) {
+                    log.warn("Failed to parse HTTP status from acquire lock result: {}, treating as MISS", result, e);
+                    return IdempotencyResult.miss();
+                }
             }
         }
         log.warn("Unexpected acquire lock result: {}, treating as MISS", result);
@@ -201,7 +209,12 @@ public class RedisIdempotencyAdapter implements IdempotencyPort {
             return IdempotencyResult.processing();
         }
 
-        int httpStatus = Integer.parseInt(storedHttpStatus);
-        return IdempotencyResult.hit(storedResponse, httpStatus);
+        try {
+            int httpStatus = Integer.parseInt(storedHttpStatus);
+            return IdempotencyResult.hit(storedResponse, httpStatus);
+        } catch (NumberFormatException e) {
+            log.warn("Failed to parse HTTP status '{}', treating as PROCESSING", storedHttpStatus, e);
+            return IdempotencyResult.processing();
+        }
     }
 }

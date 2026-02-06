@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS orders (
     metadata TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    tenant_id VARCHAR(50) NOT NULL DEFAULT 'default',
+    tenant_id VARCHAR(50) NOT NULL DEFAULT '__default__',
     paid_at TIMESTAMP WITH TIME ZONE,
     completed_at TIMESTAMP WITH TIME ZONE
 );
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS order_line_items (
     unit_price DECIMAL(19, 4) NOT NULL,
     total_price DECIMAL(19, 4) NOT NULL,
     currency VARCHAR(3) NOT NULL,
-    tenant_id VARCHAR(50) NOT NULL DEFAULT 'default'
+    tenant_id VARCHAR(50) NOT NULL DEFAULT '__default__'
 );
 
 -- Payments Table
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS payments (
     failed_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    tenant_id VARCHAR(50) NOT NULL DEFAULT 'default',
+    tenant_id VARCHAR(50) NOT NULL DEFAULT '__default__',
     version BIGINT DEFAULT 0,
 
     CONSTRAINT chk_payment_status CHECK (status IN ('READY', 'PROCESSING', 'APPROVED', 'CONFIRMED', 'FAILED', 'REFUNDED')),
@@ -66,8 +66,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_created_at ON payments(created_at);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_order_id_unique ON payments(order_id);
 
 -- Idempotency Keys Table
--- Note: Using TEXT for response in test schema for simpler String mapping.
--- Production schema (V5) uses JSONB with a custom converter.
+-- Note: Using TEXT for response to match production schema (V5).
 CREATE TABLE IF NOT EXISTS idempotency_keys (
     id              BIGSERIAL PRIMARY KEY,
     tenant_id       VARCHAR(50) NOT NULL,

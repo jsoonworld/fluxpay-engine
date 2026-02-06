@@ -44,8 +44,8 @@ ALTER TABLE idempotency_keys FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY tenant_isolation_idempotency ON idempotency_keys
     FOR ALL
-    USING (tenant_id = COALESCE(NULLIF(current_setting('app.tenant_id', true), ''), '__no_tenant__'))
-    WITH CHECK (tenant_id = COALESCE(NULLIF(current_setting('app.tenant_id', true), ''), '__no_tenant__'));
+    USING (tenant_id = COALESCE(NULLIF(current_setting('app.tenant_id', true), ''), '__default__'))
+    WITH CHECK (tenant_id = COALESCE(NULLIF(current_setting('app.tenant_id', true), ''), '__default__'));
 
 -- ==============================================================================
 -- 5. Grant permissions to admin role

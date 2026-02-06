@@ -1,4 +1,4 @@
-package com.fluxpay.engine.infrastructure.idempotency;
+package com.fluxpay.engine.domain.model.idempotency;
 
 import java.util.Objects;
 

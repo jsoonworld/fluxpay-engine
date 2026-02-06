@@ -1,5 +1,7 @@
 package com.fluxpay.engine.infrastructure.idempotency;
 
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyKey;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyResult;
 import com.fluxpay.engine.infrastructure.tenant.TenantContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -346,6 +348,7 @@ public class IdempotencyFilter implements WebFilter {
                 .map(dataBuffer -> {
                     byte[] content = new byte[dataBuffer.readableByteCount()];
                     dataBuffer.read(content);
+                    DataBufferUtils.release(dataBuffer);
                     cachedBody.append(new String(content, StandardCharsets.UTF_8));
                     return bufferFactory().wrap(content);
                 })

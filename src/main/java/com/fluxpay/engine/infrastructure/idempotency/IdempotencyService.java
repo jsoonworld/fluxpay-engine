@@ -1,5 +1,7 @@
 package com.fluxpay.engine.infrastructure.idempotency;
 
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyKey;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyResult;
 import com.fluxpay.engine.domain.port.outbound.IdempotencyPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

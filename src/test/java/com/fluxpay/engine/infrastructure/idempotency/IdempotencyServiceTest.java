@@ -1,5 +1,8 @@
 package com.fluxpay.engine.infrastructure.idempotency;
 
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyKey;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyResult;
+import com.fluxpay.engine.domain.model.idempotency.IdempotencyStatus;
 import com.fluxpay.engine.domain.port.outbound.IdempotencyPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
