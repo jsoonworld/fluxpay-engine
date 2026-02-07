@@ -29,6 +29,11 @@ public record RefundRequestedEvent(
         Objects.requireNonNull(occurredAt, "occurredAt is required");
     }
 
+    @Override
+    public String eventType() {
+        return "refund.requested";
+    }
+
     /**
      * Creates a RefundRequestedEvent from a Refund domain object.
      *

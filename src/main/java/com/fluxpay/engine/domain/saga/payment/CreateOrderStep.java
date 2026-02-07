@@ -48,11 +48,16 @@ public class CreateOrderStep implements SagaStep<Order> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // List.class erases to raw List; cast to List<OrderLineItem> is safe as context is populated by saga initiator
     public Mono<Order> execute(SagaContext context) {
         String userId = context.get("userId", String.class);
         List<OrderLineItem> lineItems = context.get("lineItems", List.class);
         Currency currency = context.get("currency", Currency.class);
+
+        if (userId == null || lineItems == null || currency == null) {
+            return Mono.error(new IllegalStateException(
+                "Missing required saga context values: userId, lineItems, or currency"));
+        }
 
         log.debug("Creating order: userId={}, lineItemCount={}", userId, lineItems.size());
 

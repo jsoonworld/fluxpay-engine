@@ -10,7 +10,7 @@ CREATE TABLE refunds (
     refund_id       VARCHAR(50) NOT NULL UNIQUE,
     tenant_id       VARCHAR(50) NOT NULL,
     payment_id      VARCHAR(50) NOT NULL,
-    amount          DECIMAL(15, 2) NOT NULL,
+    amount          DECIMAL(19, 4) NOT NULL,
     currency        VARCHAR(3) NOT NULL,
     reason          VARCHAR(500),
     status          VARCHAR(20) NOT NULL,  -- REQUESTED, PROCESSING, COMPLETED, FAILED
@@ -41,7 +41,7 @@ CREATE TABLE webhooks (
     error_message   TEXT,
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 
-    CONSTRAINT ck_webhook_status CHECK (status IN ('PENDING', 'DELIVERED', 'FAILED'))
+    CONSTRAINT ck_webhook_status CHECK (status IN ('PENDING', 'SENDING', 'DELIVERED', 'FAILED', 'RETRYING'))
 );
 
 -- ==============================================================================

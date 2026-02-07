@@ -62,7 +62,8 @@ public class RefundService {
         // Check payment status
         if (payment.getStatus() != PaymentStatus.CONFIRMED) {
             return Mono.error(new InvalidRefundException(payment.getId(),
-                "Payment must be in CONFIRMED status to refund. Current status: " + payment.getStatus()));
+                "Payment must be in CONFIRMED status to refund. Current status: " + payment.getStatus(),
+                "PAY_010"));
         }
 
         // Check refund period
@@ -70,7 +71,8 @@ public class RefundService {
             Instant refundDeadline = payment.getConfirmedAt().plus(Duration.ofDays(refundPeriodDays));
             if (Instant.now().isAfter(refundDeadline)) {
                 return Mono.error(new InvalidRefundException(payment.getId(),
-                    "Refund period expired. Refunds are only allowed within " + refundPeriodDays + " days of payment"));
+                    "Refund period expired. Refunds are only allowed within " + refundPeriodDays + " days of payment",
+                    "PAY_008"));
             }
         }
 
@@ -80,7 +82,8 @@ public class RefundService {
                 Money refundable = payment.getAmount().subtract(totalRefunded);
                 if (amount.isGreaterThan(refundable)) {
                     return Mono.error(new InvalidRefundException(payment.getId(),
-                        "Refund amount " + amount + " exceeds refundable amount " + refundable));
+                        "Refund amount " + amount + " exceeds refundable amount " + refundable,
+                        "PAY_007"));
                 }
                 return Mono.just(payment);
             })
@@ -94,7 +97,8 @@ public class RefundService {
             .flatMap(count -> {
                 if (count >= maxPartialRefunds) {
                     return Mono.error(new InvalidRefundException(payment.getId(),
-                        "Maximum number of partial refunds (" + maxPartialRefunds + ") reached"));
+                        "Maximum number of partial refunds (" + maxPartialRefunds + ") reached",
+                        "PAY_011"));
                 }
                 return Mono.just(payment);
             });

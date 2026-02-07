@@ -116,6 +116,16 @@ fluxpay:
     period-days: 7                  # Refund allowed period after payment
     max-partial-refunds: 10         # Maximum number of partial refunds per payment
 
+  outbox:
+    enabled: true
+    polling-interval-ms: 100       # Polling interval in milliseconds
+    batch-size: 100                # Batch size per poll
+    max-retries: 3                 # Max retries before marking FAILED
+    cleanup:
+      enabled: true
+      retention-days: 7            # PUBLISHED event retention period
+      cron: "0 0 3 * * *"         # Daily cleanup at 3 AM
+
   webhook:
     outbound:
       max-retries: 5                # Maximum retry attempts

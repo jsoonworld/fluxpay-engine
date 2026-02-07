@@ -10,4 +10,14 @@ public sealed interface RefundEvent extends DomainEvent
     String refundId();
 
     String paymentId();
+
+    @Override
+    default String aggregateType() {
+        return "REFUND";
+    }
+
+    @Override
+    default String aggregateId() {
+        return refundId();
+    }
 }

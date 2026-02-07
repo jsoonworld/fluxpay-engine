@@ -37,7 +37,9 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -305,6 +307,37 @@ class RefundControllerTest {
         }
 
         @Test
+        @DisplayName("should produce SHA-256 payload hash for idempotency")
+        void shouldProduceSha256PayloadHash() {
+            // Given
+            CreateRefundRequest request = new CreateRefundRequest(
+                TEST_PAYMENT_ID.toString(),
+                BigDecimal.valueOf(5000),
+                "KRW",
+                "Customer request"
+            );
+
+            when(refundService.createRefund(any(PaymentId.class), any(Money.class), anyString()))
+                .thenReturn(Mono.just(testRefund));
+
+            // When
+            webTestClient.post()
+                .uri(BASE_URL)
+                .header(TENANT_HEADER, TEST_TENANT_ID)
+                .header(IDEMPOTENCY_HEADER, TEST_IDEMPOTENCY_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(request)
+                .exchange()
+                .expectStatus().isCreated();
+
+            // Then - verify the payload hash passed to acquireLock is a 64-char hex string (SHA-256)
+            verify(idempotencyService).acquireLock(
+                any(IdempotencyKey.class),
+                argThat(hash -> hash != null && hash.matches("^[0-9a-f]{64}$")),
+                any(Duration.class));
+        }
+
+        @Test
         @DisplayName("should fail with 400 when refund exceeds payment amount")
         void shouldFailWhenRefundExceedsPaymentAmount() {
             // Given
@@ -318,7 +351,8 @@ class RefundControllerTest {
             when(refundService.createRefund(any(PaymentId.class), any(Money.class), anyString()))
                 .thenReturn(Mono.error(new InvalidRefundException(
                     PaymentId.of(TEST_PAYMENT_ID),
-                    "Refund amount exceeds refundable amount")));
+                    "Refund amount exceeds refundable amount",
+                    "PAY_007")));
 
             // When & Then
             webTestClient.post()

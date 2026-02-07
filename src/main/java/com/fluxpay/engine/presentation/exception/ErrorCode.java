@@ -19,6 +19,7 @@ public enum ErrorCode {
     REFUND_PERIOD_EXPIRED("PAY_008", HttpStatus.BAD_REQUEST, "Refund period has expired"),
     REFUND_NOT_FOUND("PAY_009", HttpStatus.NOT_FOUND, "Refund not found"),
     INVALID_REFUND_STATE("PAY_010", HttpStatus.BAD_REQUEST, "Invalid refund state transition"),
+    REFUND_LIMIT_EXCEEDED("PAY_011", HttpStatus.BAD_REQUEST, "Maximum number of partial refunds reached"),
 
     // Validation Errors (VAL_xxx)
     VALIDATION_FAILED("VAL_001", HttpStatus.BAD_REQUEST, "Request validation failed"),

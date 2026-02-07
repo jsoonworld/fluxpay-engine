@@ -25,6 +25,11 @@ public record RefundFailedEvent(
         Objects.requireNonNull(occurredAt, "occurredAt is required");
     }
 
+    @Override
+    public String eventType() {
+        return "refund.failed";
+    }
+
     /**
      * Creates a RefundFailedEvent from a failed Refund domain object.
      *

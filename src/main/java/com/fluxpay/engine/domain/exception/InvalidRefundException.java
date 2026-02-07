@@ -9,17 +9,13 @@ public class InvalidRefundException extends RuntimeException {
 
     private final PaymentId paymentId;
     private final String reason;
+    private final String errorCode;
 
-    public InvalidRefundException(PaymentId paymentId, String reason) {
+    public InvalidRefundException(PaymentId paymentId, String reason, String errorCode) {
         super(String.format("Invalid refund for payment %s: %s", paymentId, reason));
         this.paymentId = paymentId;
         this.reason = reason;
-    }
-
-    public InvalidRefundException(String message) {
-        super(message);
-        this.paymentId = null;
-        this.reason = message;
+        this.errorCode = errorCode;
     }
 
     public PaymentId getPaymentId() {
@@ -28,5 +24,9 @@ public class InvalidRefundException extends RuntimeException {
 
     public String getReason() {
         return reason;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
     }
 }

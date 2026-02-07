@@ -30,6 +30,11 @@ public record RefundCompletedEvent(
         Objects.requireNonNull(occurredAt, "occurredAt is required");
     }
 
+    @Override
+    public String eventType() {
+        return "refund.completed";
+    }
+
     /**
      * Creates a RefundCompletedEvent from a completed Refund domain object.
      *
