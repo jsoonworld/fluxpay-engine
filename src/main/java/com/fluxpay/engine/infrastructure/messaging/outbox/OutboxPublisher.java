@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Polls the outbox_events table for PENDING events and publishes them to Kafka.
@@ -27,6 +28,7 @@ public class OutboxPublisher {
     private final int maxRetries;
     private final boolean cleanupEnabled;
     private final int retentionDays;
+    private final AtomicBoolean publishing = new AtomicBoolean(false);
 
     public OutboxPublisher(
             OutboxEventR2dbcRepository outboxRepository,
@@ -49,9 +51,13 @@ public class OutboxPublisher {
      */
     @Scheduled(fixedDelayString = "${fluxpay.outbox.polling-interval-ms:100}")
     public void scheduledPublish() {
+        if (!publishing.compareAndSet(false, true)) {
+            return;
+        }
         publishPendingEvents()
             .doOnError(error -> log.error("Outbox publishing cycle failed", error))
             .onErrorComplete()
+            .doFinally(signal -> publishing.set(false))
             .subscribe();
     }
 

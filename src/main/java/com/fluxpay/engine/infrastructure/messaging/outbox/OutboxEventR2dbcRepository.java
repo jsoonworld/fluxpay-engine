@@ -31,11 +31,11 @@ public interface OutboxEventR2dbcRepository extends ReactiveCrudRepository<Outbo
     Mono<Integer> markAsPublished(Long id);
 
     @Modifying
-    @Query("UPDATE outbox_events SET status = 'FAILED', error_message = :errorMessage, retry_count = retry_count + 1 WHERE id = :id")
+    @Query("UPDATE outbox_events SET status = 'FAILED', error_message = :errorMessage, retry_count = retry_count + 1 WHERE id = :id AND status = 'PROCESSING'")
     Mono<Integer> markAsFailed(Long id, String errorMessage);
 
     @Modifying
-    @Query("UPDATE outbox_events SET status = 'PENDING', retry_count = retry_count + 1 WHERE id = :id")
+    @Query("UPDATE outbox_events SET status = 'PENDING', retry_count = retry_count + 1 WHERE id = :id AND status = 'PROCESSING'")
     Mono<Integer> resetToPending(Long id);
 
     @Modifying

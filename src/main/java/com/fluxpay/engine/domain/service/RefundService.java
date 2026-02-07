@@ -98,7 +98,7 @@ public class RefundService {
                 if (count >= maxPartialRefunds) {
                     return Mono.error(new InvalidRefundException(payment.getId(),
                         "Maximum number of partial refunds (" + maxPartialRefunds + ") reached",
-                        "PAY_007"));
+                        "PAY_011"));
                 }
                 return Mono.just(payment);
             });

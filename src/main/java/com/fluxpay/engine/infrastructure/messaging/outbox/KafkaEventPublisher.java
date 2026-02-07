@@ -1,5 +1,7 @@
 package com.fluxpay.engine.infrastructure.messaging.outbox;
 
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -37,7 +39,7 @@ public class KafkaEventPublisher {
         log.debug("Publishing to Kafka: topic={}, key={}, eventId={}",
             topic, key, event.getEventId());
 
-        return Mono.fromFuture(
+        return Mono.fromFuture(() ->
             kafkaTemplate.send(topic, key, event.getPayload()).toCompletableFuture()
         )
         .doOnSuccess(result -> log.debug("Published to Kafka: eventId={}", event.getEventId()))
@@ -47,6 +49,7 @@ public class KafkaEventPublisher {
     }
 
     private String deriveTopic(String aggregateType) {
+        Objects.requireNonNull(aggregateType, "aggregateType is required for topic derivation");
         return TOPIC_PREFIX + aggregateType.toLowerCase() + TOPIC_SUFFIX;
     }
 }

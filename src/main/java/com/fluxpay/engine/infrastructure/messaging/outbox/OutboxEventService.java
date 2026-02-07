@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * Implements EventPublisher by storing domain events in the outbox table.
@@ -31,6 +32,7 @@ public class OutboxEventService implements EventPublisher {
 
     @Override
     public Mono<Void> publish(DomainEvent event) {
+        Objects.requireNonNull(event, "event is required");
         return Mono.deferContextual(ctx -> {
             String tenantId = ctx.getOrDefault("tenantId", DEFAULT_TENANT);
 

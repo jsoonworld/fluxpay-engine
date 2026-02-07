@@ -25,17 +25,17 @@ public record RefundFailedEvent(
         Objects.requireNonNull(occurredAt, "occurredAt is required");
     }
 
+    @Override
+    public String eventType() {
+        return "refund.failed";
+    }
+
     /**
      * Creates a RefundFailedEvent from a failed Refund domain object.
      *
      * @param refund the failed refund domain object
      * @return a new RefundFailedEvent
      */
-    @Override
-    public String eventType() {
-        return "refund.failed";
-    }
-
     public static RefundFailedEvent from(Refund refund) {
         Objects.requireNonNull(refund, "refund is required");
         return new RefundFailedEvent(
